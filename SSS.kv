@@ -1,0 +1,257 @@
+
+<CreateAccountWindow>:
+    name: "create"
+
+    username: username
+    email: email
+    password: password
+    btn:btn
+
+    FloatLayout:
+        cols:1
+
+        FloatLayout:
+            size: root.width, root.height/2
+
+            Label:
+                text: "Create an Account"
+                size_hint: 0.8, 0.2
+                pos_hint: {"x":0.1, "top":1}
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+            Label:
+                size_hint: 0.5,0.12
+                pos_hint: {"x":0, "top":0.8}
+                text: "Name: "
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+            TextInput:
+                pos_hint: {"x":0.5, "top":0.8}
+                size_hint: 0.4, 0.08
+                id: username
+                multiline: False
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+            Label:
+                size_hint: 0.5,0.12
+                pos_hint: {"x":0, "top":0.8-0.13}
+                text: "Email: "
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+            TextInput:
+                pos_hint: {"x":0.5, "top":0.67}
+                size_hint: 0.4, 0.08
+                id: email
+                multiline: False
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+            Label:
+                size_hint: 0.5,0.12
+                pos_hint: {"x":0, "top":0.8-0.13*2}
+                text: "Password: "
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+            TextInput:
+                pos_hint: {"x":0.5, "top":0.8-0.13*2}
+                size_hint: 0.4, 0.08
+                id: password
+                multiline: False
+                password: True
+                font_size: (root.width**2 + root.height**2) / 14**4
+
+        Button:
+            pos_hint:{"x":0.3,"y":0.25}
+            size_hint: 0.4, 0.1
+            font_size: (root.width**2 + root.height**2) / 17**4
+            text: "Already have an Account? Log In"
+            on_release:
+                root.manager.transition.direction = "right"
+                root.login()
+
+        Button:
+            id: btn
+            pos_hint:{"x":0.2,"y":0.05}
+            size_hint: 0.6, 0.15
+            text: "Sign-up"
+            font_size: (root.width**2 + root.height**2) / 14**4
+            on_release:
+                root.submit()
+
+
+<LoginWindow>:
+    name: "login"
+
+    email: email
+    password: password
+    cb: cb
+    btn: btn
+
+    FloatLayout:
+
+        Label:
+            text:"Email: "
+            font_size: (root.width**2 + root.height**2) / 13**4
+            pos_hint: {"x":0.1, "top":0.9}
+            size_hint: 0.35, 0.15
+
+        TextInput:
+            id: email
+            font_size: (root.width**2 + root.height**2) / 14**4
+            multiline: False
+            pos_hint: {"x": 0.45 , "top":0.9}
+            size_hint: 0.4, 0.08
+
+        Label:
+            text:"Password: "
+            font_size: (root.width**2 + root.height**2) / 13**4
+            pos_hint: {"x":0.1, "top":0.7}
+            size_hint: 0.35, 0.15
+
+        TextInput:
+            id: password
+            font_size: (root.width**2 + root.height**2) / 14**4
+            multiline: False
+            password: True
+            pos_hint: {"x": 0.45, "top":0.7}
+            size_hint: 0.4, 0.08
+
+        Label:
+            text: "Remember Me"
+            font_size: (root.width**2 + root.height**2) / 16**4
+            pos_hint: {"x": 0.2, "top":0.5}
+            size_hint: 0.45, 0.05
+
+        CheckBox:
+            id: cb
+            font_size: (root.width**2 + root.height**2) / 16**4
+            pos_hint: {"x": 0.6, "top":0.5}
+            size_hint: 0.05, 0.05
+
+
+        Button:
+            id: btn
+            pos_hint:{"x":0.2,"y":0.05}
+            size_hint: 0.6, 0.2
+            font_size: (root.width**2 + root.height**2) / 13**4
+            text: "Log-in"
+            on_release:
+                root.loginBtn()
+
+        Button:
+            pos_hint:{"x":0.3,"y":0.3}
+            size_hint: 0.4, 0.1
+            font_size: (root.width**2 + root.height**2) / 17**4
+            text: "Don't have an Account? Create One"
+            on_release:
+                root.manager.transition.direction = "left"
+                root.createBtn()
+
+<FriendsScreen>:
+    bx:bx
+    ScrollView:
+        size: self.size
+        GridLayout:
+            id:bx
+            cols:1
+            size_hint_y: None
+            row_default_height: '30dp'
+            row_force_default: True
+            spacing: 0, 0
+            padding: 0, 0
+            Button:
+                text: "Add Friend"
+                font_size: (root.width**2 + root.height**2) / 17**4
+                on_release:
+                    root.add_friend_screen()
+            Button:
+                text: "Public Room"
+                font_size: (root.width**2 + root.height**2) / 17**4
+                on_release: root.public() 
+            Button:
+                text: "Remove Friend"
+                font_size: (root.width**2 + root.height**2) / 17**4
+                on_release: root.remove_friend()
+            Label:
+                font_size: (root.width**2 + root.height**2) / 17**4
+                text:"Click on a friend to send him a message:"
+
+<AddFriend>:
+    friend:friend
+    FloatLayout:
+        Label:
+            text:"Enter friend's username: "
+            font_size: (root.width**2 + root.height**2) / 14**4
+            pos_hint: {"x":0.1, "top":0.5}
+            size_hint: 0.15, 0.1
+        TextInput:
+            id:friend
+            font_size: (root.width**2 + root.height**2) / 14**4
+            multiline: False
+            pos_hint: {"x": 0.45 , "top":0.5}
+            size_hint: 0.35, 0.08
+        Button:
+            text: "Add Friend"
+            pos_hint: {"x": 0.80 , "top":0.5}
+            size_hint: 0.3, 0.08
+            on_release: root.add_friend()
+        Button:
+            text: "Go Back"
+            pos_hint: {"x": 0 , "top":1}
+            size_hint: 0.08, 0.08
+            on_release: root.goBack()
+
+<RemoveFriend>:
+    bx:bx
+    ScrollView:
+        size: self.size
+        GridLayout:
+            id:bx
+            cols:1
+            size_hint_y: None
+            row_default_height: '30dp'
+            row_force_default: True
+            spacing: 0, 0
+            padding: 0, 0
+            Button:
+                text:"Go Back"
+                pos_hint: {"x": 0 , "top":1}
+                size_hint: 0.08, 0.08
+                on_release: root.back()
+            Label:
+                font_size: (root.width**2 + root.height**2) / 17**4
+                text:"Click on a friend to remove"
+
+<MainWindow>:
+    tb: tb
+    mtb: mtb
+
+    FloatLayout:
+        Label:
+            text: "Welcome To the Secure Share System!"
+            size_hint:0.1, 0.05
+            pos_hint:{"x":0.05, "y": 0.91}
+        TextInput:
+            id: tb
+            size_hint:0.8, 0.7
+            pos_hint:{"x":0.05, "y": 0.2}
+            is_focusable: False
+        TextInput:
+            id: mtb
+            multiline: False
+            size_hint:0.8, 0.15
+            pos_hint:{"x":0.05, "y": 0.05}
+            on_text_validate: root.write()
+
+        Button:
+            text: "Upload File"
+            size_hint: 0.12, 0.12
+            pos_hint:{"x":0.85, "y": 0.17}
+            on_release:
+                root.sendFile()
+
+        Button:
+            pos_hint:{"x":0.85, "y": 0.05}
+            size_hint:0.12,0.12
+            text: "Log Out"
+            on_release:
+                root.logOut()
