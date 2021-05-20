@@ -229,29 +229,37 @@
         Label:
             text: "Welcome To the Secure Share System!"
             size_hint:0.1, 0.05
-            pos_hint:{"x":0.05, "y": 0.91}
+            pos_hint:{"x":0.2, "y": 0.91}
         TextInput:
             id: tb
-            size_hint:0.8, 0.7
+            size_hint:0.82, 0.7
             pos_hint:{"x":0.05, "y": 0.2}
             is_focusable: False
         TextInput:
             id: mtb
             multiline: False
-            size_hint:0.8, 0.15
+            size_hint:0.82, 0.15
             pos_hint:{"x":0.05, "y": 0.05}
             on_text_validate: root.write()
 
         Button:
             text: "Upload File"
-            size_hint: 0.12, 0.12
-            pos_hint:{"x":0.85, "y": 0.17}
+            size_hint: 0.1, 0.1
+            pos_hint:{"x":0.88, "y": 0.15}
+            font_size: 16
             on_release:
                 root.sendFile()
-
         Button:
-            pos_hint:{"x":0.85, "y": 0.05}
-            size_hint:0.12,0.12
+            text:"Leave Room"
+            pos_hint:{"x":0.88, "y": 0.25}
+            size_hint: 0.1,0.1
+            font_size: 16
+            on_release:
+                root.leave()
+        Button:
+            pos_hint: {"x":0.88, "y": 0.05}
+            size_hint: 0.1,0.1
             text: "Log Out"
+            font_size: 16
             on_release:
                 root.logOut()

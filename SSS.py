@@ -1,17 +1,10 @@
-import kivy
-from kivy.uix.behaviors import button
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.widget import Widget
+from tkinter.constants import FALSE
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
 from kivy.lang import Builder
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.checkbox import CheckBox
-import rsa
 from cryptography.fernet import Fernet
 import socket
 import threading
@@ -21,7 +14,7 @@ from kivy.properties import ObjectProperty
 from User import User
 from tkinter import filedialog
 from tkinter import Tk
-import sys
+import multiprocessing
 
 
 """udp""" # to-do list
@@ -81,22 +74,6 @@ def send_file(f):
         return
 
 
-def receive(self):
-    while True:
-        try:
-            message = decrypt_message(client.recv(1024), skey)
-            k = message.split('<>')
-            if k[0] == '¥•¼·ëçŒ▓':
-                self.textBrowser.append(k[1])
-            if k[0] == 'ƒ₧—©±°◙':
-                print('end')
-
-        except Exception as e:
-            print('An error occurred: ' + str(e))
-            client.close()
-            sys.exit()
-
-
 def invalidUsername():
     pop = Popup(title='Invalid Username',
                   content=Label(text='please enter username.'),
@@ -116,6 +93,7 @@ def invalidEmail():
                   size_hint=(None, None), size=(400, 400))
     pop.content.text = "bruh"
     pop.open()
+
 
 class CreateAccountWindow(Screen):
     username = ObjectProperty(None)
@@ -203,7 +181,7 @@ class CreateAccountWindow(Screen):
                 self.pop.dismiss()
                 return
         else:
-            self.pop.content.text = 'Email already registered'
+            self.pop.content.text = 'Email or Username already exists'
             self.btn.disabled = False
             time.sleep(1)
             self.pop.dismiss()
@@ -337,7 +315,7 @@ class MainWindow(Screen):
     def logOut(self): #  log-out function
         try:
             delete = open('UserData.txt', 'wb') #  open "cookie" file
-            delete.write('') #  reset the file
+            delete.write(b'') #  reset the file
         except:
             pass
         sm.current = "login" #  go to the main log-in page
@@ -349,6 +327,46 @@ class MainWindow(Screen):
             file_thread = threading.Thread(target=send_file, args=(filename,))
             file_thread.start()
 
+    def receiv_main(self):
+        while True:
+            try:
+                buff = decrypt_message(client.recv(100), skey)
+                message = decrypt_message(client.recv(int(buff)), skey)
+                k = message.split('<>')
+                if k[0] == 'byebye':
+                    sm.current = "friends"
+                    return
+                else:
+                    t = self.tb.text
+                    self.tb.text = t + k[1]
+
+                if k[0] == '':
+                    print('end')
+
+            except Exception as e:
+                print('An error occurred: ' + str(e))
+                return
+
+    def receive(self):
+        r_t = threading.Thread(target=self.receiv_main)
+        r_t.start()
+
+
+    def leave(self):
+        l_t = threading.Thread(target=self.leave_main)
+        l_t.start()
+
+    def leave(self):
+        global target
+        if target == 'public':
+            query = encrypt_message('t◙<>quit_pub', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+        query = encrypt_message('▓quit<>' + target + '<>' + f'{user.nick} left the room', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        return
+
 
 class FriendsScreen(Screen):
     bx = ObjectProperty(None)
@@ -358,7 +376,11 @@ class FriendsScreen(Screen):
     def public(self):
         global target
         target = 'public'
+        query = encrypt_message('t◙<>public', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
         sm.current = "main"
+        sm.current_screen.receive()
 
     def load(self):
         self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
@@ -366,16 +388,23 @@ class FriendsScreen(Screen):
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
-        friendlist = decrypt_message(client.recv(int(length)), skey).split('-')
-        if friendlist != ['']:
-            for friend in friendlist:
-                if friend != '':
-                    self.bx.add_widget(Button(text=friend, on_release=self.start_private))
+        friendlist = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
+        check = False #  set a variable for checking duplicates
+        if friendlist != ['']: #  check if friendlist is not empty
+            for friend in friendlist: #  go over recived friendlist
+                for obj in self.bx.children: #  go over the existing widgets in layout
+                    if friend == obj.text: #  check if button already exiest for friend
+                        check = True # if found duplicate let the program know 
+                        break #  end the inside loop for better runtime
+                if friend != '' and not check: #  if friend is not nothing and his duplicate not found
+                    self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
+                check = False #  reset the duplicate checking variable
 
     def start_private(self, button):
         global target
         target = button.text
         sm.current = "main"
+        sm.current_screen.receive()
 
     def remove_friend(self):
         sm.current = "remove"
@@ -399,7 +428,6 @@ class AddFriend(Screen):
         ans = decrypt_message(client.recv(int(length)), skey)
         if ans == 'added':
             self.pop.content.text = 'Added friend successfully'
-            self.pop.open()
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"
@@ -412,6 +440,7 @@ class AddFriend(Screen):
     
     def goBack(self):
         sm.current = "friends"
+        sm.current_screen.load()
 
 
 class RemoveFriend(Screen):
@@ -422,6 +451,7 @@ class RemoveFriend(Screen):
 
     def back(self): # a method for the button of going back to the friends screen
         sm.current = "friends" #  go back to the friends screen
+        sm.current_screen.load()
 
     def load(self): # a method for loading the friendlist
         self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
@@ -479,7 +509,7 @@ screens = [AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccount
 for screen in screens:
     sm.add_widget(screen)
 
-
+sm.size_hint_min = 0.5, 0.5
 sm.current = "login" #  start from log-in window
 sm.current_screen.kook() #  check for automatic log-in with the kook() function
 

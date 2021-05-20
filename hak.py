@@ -18,11 +18,24 @@ def decrypt_message(encrypted_message, key):
 
 print(encrypt_message('', generate_key()))"""
 
-#import sqlite3
+import sqlite3
 
-#con = sqlite3.connect('notthesecretdatabase.db')
-#curs = con.cursor()
+con = sqlite3.connect('notthesecretdatabase.db')
+curs = con.cursor()
 
-#curs.execute('''CREATE TABLE not_users (name text, email text, secretpassphrase text, friendlist text);''')
-#con.commit()
-#con.close()
+curs.execute('''CREATE TABLE not_users (id INTEGER PRIMARY KEY AUTOINCREMENT, name text, email text, secretpassphrase text, friendlist text);''')
+con.commit()
+con.close()
+"""
+import sqlite3
+
+con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
+cur = con.cursor()
+
+
+
+email = '2tomshlomi@gmail.com'
+cur.execute('''SELECT friendlist FROM not_users WHERE email=(?);''', (str(email),))
+con.commit()
+old_list = cur.fetchall()[0][0]
+print(old_list)"""

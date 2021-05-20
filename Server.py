@@ -102,12 +102,16 @@ def signup(c):
     pub = rsa.key.PublicKey(nk, e)
     cur.execute('''SELECT email FROM not_users WHERE email = (?);''', (str(m1.decode()),))
     con.commit()
-    if cur.fetchall() != []:
+    em = cur.fetchall()
+    cur.execute('''SELECT name FROM not_users WHERE name = (?);''', (str(m3),))
+    con.commit()
+    username = cur.fetchall()
+    if em != [] or username != []:
         c.send(rsa.encrypt('fialad'.encode(), pub))
         return False
     p = sha3_256()
     p.update(m2 + m1)
-    cur.execute('''INSERT INTO not_users
+    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist)
                 VALUES (?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), ''))
     con.commit()
     c.send(rsa.encrypt('succep'.encode(), pub))
@@ -118,30 +122,35 @@ def get_friends(email):
     cur.execute('''SELECT friendlist FROM not_users WHERE email=(?);''', (str(email),))
     con.commit()
     flist = cur.fetchall()
+    print(flist)
     if flist == []:
         return ''
     return flist[0][0]
 
 
 def add_friend(email, friend):
-    cur.execute('''SELECT name FROM not_users WHERE name=(?);''', (friend))
+    cur.execute('''SELECT name FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
-    if cur.fetchall() == []:
+    ans = cur.fetchall()
+    print(ans)
+    if ans == []:
+        print('bruh')
         return False
     current = get_friends(email)
     updated = (str(current) + str(friend) + '-')
+    print(current)
+    print(updated)
     cur.execute('''UPDATE not_users SET friendlist=(?) WHERE email=(?);''', (updated, str(email)))
     con.commit()
     return True
 
 
 def remove_friend(email, friend):
-    cur.execute('''SELECT friendlist FROM not_users WHERE email=(?);''', (str(email),))
-    con.commit()
-    old_list = cur.fetchall()
+    old_list = get_friends()
     if old_list == []:
         return
-    new_list = old_list[0].replace(str(friend) + '-', '')
+    print(old_list)
+    new_list = old_list.replace(str(friend) + '-', '')
     cur.execute('''UPDATE not_users SET friendlist = (?) WHERE email=(?)''', (new_list, email))
     con.commit()
 
@@ -179,9 +188,11 @@ def decrypt_file(encrypted_file, key):
 def broadcast(message, target, current=''):
     if target == 'public':
         for cl in public:
-            if cl[0] is not current:
+            if cl[0] is current:
                 key = cl[2]
-                cl[0].send(encrypt_message(message, key))
+                query = encrypt_message(message, key)
+                cl[0].send(encrypt_message(str(len(query)), key))
+                cl[0].send(query)
     else:
         for cl in clients:
             if cl[0] is not current and cl[1] == target:
@@ -222,9 +233,9 @@ def handle(client, addr, session_key):
     time.sleep(0.3)
     while True:
         try:
-
             buff = decrypt_message(client.recv(100), session_key)
             message = decrypt_message(client.recv(int(buff)), session_key)
+            print(message)
             split = message.split('<>')
             if split[0] == 'üΩ¥':
                 ans = add_friend(split[1], split[2])
@@ -241,6 +252,8 @@ def handle(client, addr, session_key):
                 remove_friend(split[1], split[2])
                 query = encrypt_message('removed', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
+                print(len(query))
+                print(query)
                 client.send(query)
 
             elif split[0] == 'ø∞ö':
@@ -258,10 +271,20 @@ def handle(client, addr, session_key):
                     f.write(data)
                 f.close()
                 #client.send(encrypt_message(f'{split[1]} uploaded successfully'))*******
+            
+            elif split[0] == '▓quit':
+                query = encrypt_message('byebye<>', session_key)
+                client.send(encrypt_message(str(len(query)), session_key))
+                client.send(query)
+                broadcast(split[2], split[1], client)
 
-            else:
+            elif split[0] == 't◙':
                 if split[1] == 'public':
                     public.append((client, v[1], session_key))
+                if split[1] == 'quit_pub':
+                    public.remove((client, v[1], session_key))
+
+            else:
                 broadcast(split[2], split[1], client)
         except Exception as e:
             print(e)

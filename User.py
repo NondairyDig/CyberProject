@@ -12,7 +12,7 @@ from cryptography.fernet import *
 
 
 class User:
-    def __init__(self, emailname, password, user_socket, fr_list='', nickname='', id_num=0): #, email_socket_udp):
+    def __init__(self, emailname, password, user_socket, nickname='', fr_list=''): #, email_socket_udp):
 
         self.nick = str(nickname) #  nickname(emailname)
         p = sha3_256() # setting up the module
@@ -20,7 +20,6 @@ class User:
         self.pass_ = p.digest() #  password hash
         self.email = emailname.encode() # email
         self.client = user_socket
-        self.user_id = id_num
         self.f_list = fr_list
         #self.fast = email_socket_udp
 
