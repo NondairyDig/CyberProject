@@ -19,71 +19,71 @@ buffer_con = sqlite3.connect('buffer.db', check_same_thread=False)
 buff_cur = buffer_con.cursor()
 
 
-def verify(c, addr):
-    (pubv, privv) = rsa.newkeys(511)
-    message = c.recv(20)
-    signature = rsa.sign(message, privv, 'SHA-1')
-    c.send(str(pubv.n).encode())
-    c.send(str(pubv.e).encode())
-    c.send(signature)
-    message = '©±°◙§≡üΩ¥•¼·ëçŒ▓✠ⁿø∞ö'.encode()
-    c.send(message)
-    no = int(c.recv(154).decode())
-    eo = int(c.recv(5).decode())
-    pubv = rsa.key.PublicKey(no, eo)
-    signature = c.recv(64)
+def verify(c, addr): #  a function to verify the connection between the server and client (client socket, client address)
+    (pubv, privv) = rsa.newkeys(511) #  generate a public and privat key for rsa encryption
+    message = c.recv(20) #  a message to verify
+    signature = rsa.sign(message, privv, 'SHA-1') #  create a signature of server
+    c.send(str(pubv.n).encode()) #  send public key part
+    c.send(str(pubv.e).encode()) #  send public key part
+    c.send(signature) # send signature to compare
+    message = '©±°◙§≡üΩ¥•¼·ëçŒ▓✠ⁿø∞ö'.encode() #  send a message to verify
+    c.send(message) # ~
+    no = int(c.recv(154).decode()) #  get the public key part
+    eo = int(c.recv(5).decode()) #  get the public key part
+    pubv = rsa.key.PublicKey(no, eo) #  assemble the public key
+    signature = c.recv(64) #  get the signature 
     time.sleep(0.3)
-    rsa.verify(message, signature, pubv)
+    rsa.verify(message, signature, pubv) #  verify the signature
     print('Client: ' + str(addr) + ' Verification Completed')
 
 
-def logincheck(c):
-    (pub, priv) = rsa.newkeys(511)
-    c.send(str(pub.n).encode())
-    c.send(str(pub.e).encode())
-    u = c.recv(64)
-    time.sleep(0.1)
-    p = c.recv(64)
-    m1 = rsa.decrypt(u, priv).decode()
-    m2 = rsa.decrypt(p, priv)
-    p = sha3_256()
-    p.update(m2 + m1.encode())
-    pf = p.digest()
-    cur.execute('''SELECT email, friendlist, name FROM not_users WHERE email = (?) AND secretpassphrase = (?);''', (str(m1), str(pf)))
-    con.commit()
-    res = cur.fetchall()
-    if res == []:
-        return False, False, False, False
-    if res[0][0] == str(m1):
-        friend_list = res[0][1]
-        return res[0][2], pf, True, friend_list
-    return False, False, False, False
+def logincheck(c): #  a function of checking the login (client socket)
+    (pub, priv) = rsa.newkeys(511) #  generate a public and privat key for rsa encryption
+    c.send(str(pub.n).encode()) #  send public key part
+    c.send(str(pub.e).encode()) #  send public key part
+    u = c.recv(64) #  get encrypted email
+    time.sleep(0.1) #  wait
+    p = c.recv(64)  #  get encrypted password hash
+    m1 = rsa.decrypt(u, priv).decode() #  decrypt email
+    m2 = rsa.decrypt(p, priv) #  decrypt password hash
+    p = sha3_256() #  initialize hashing module
+    p.update(m2 + m1.encode()) #  insert password hash and salt
+    pf = p.digest() #  hash
+    cur.execute('''SELECT email, friendlist, name FROM not_users WHERE email = (?) AND secretpassphrase = (?);''', (str(m1), str(pf))) #  check for matching email and password hash
+    con.commit() #  commit database command
+    res = cur.fetchall() # get results from dtabase command
+    if res == []: #  if no match found
+        return False, False, False, False #  return False 
+    if res[0][0] == str(m1): #  if email matches database records
+        friend_list = res[0][1] #  if password matches database records
+        return res[0][2], pf, True, friend_list # return username, password, Authurization status, friend list
+    return False, False, False, False #  return False 
 
 
-def login(c, sesk):
-    ayy = logincheck(c)
+def login(c, sesk): #  a function to initialize the login process
+    ayy = logincheck(c) # call the logincheck function
     time.sleep(0.5)
-    keke = ayy[1]
-    nname = ayy[0]
-    auth = ayy[2]
-    f_list = ayy[3]
-    n = int(c.recv(154).decode())
-    e = int(c.recv(5).decode())
-    publ = rsa.key.PublicKey(n, e)
-    if auth:
-        log = rsa.encrypt((keke + b'auth'), publ)
-        c.send(log)
-        time.sleep(0.3)
-        secret_key = rsa.encrypt(sesk, publ)
-        c.send(secret_key)
-        time.sleep(0.2)
-        nicknam = rsa.encrypt(nname.encode(), publ)
-        c.send(nicknam)
-        return True, nname, f_list
-    else:
-        log = rsa.encrypt((b'login failed'), publ)
-        c.send(log)
-        return False, 'no'
+    keke = ayy[1] #  the password returned
+    nname = ayy[0] #  the username returned
+    auth = ayy[2]  #  if authorized returned
+    f_list = ayy[3] #  friendlist returned
+    n = int(c.recv(154).decode()) #  get the public key part 
+    e = int(c.recv(5).decode()) #  get the public key part
+    publ = rsa.key.PublicKey(n, e) #  assemble the public key
+    if auth: #  if the server authorized access
+        log = rsa.encrypt((keke + b'auth'), publ) #  send password + salt to confirm login
+        c.send(log) #  send
+        time.sleep(0.3) #  wait
+        secret_key = rsa.encrypt(sesk, publ) #  send session key to client
+        c.send(secret_key) #  send
+        time.sleep(0.2) # wait
+        nicknam = rsa.encrypt(nname.encode(), publ) #  send nickname from database
+        c.send(nicknam) # send
+        return True, nname, f_list # return authorization confirmation, nickname, friendlist
+    else: #  if log-in not authorized
+        log = rsa.encrypt((b'login failed'), publ) #  send that log-in was not authorized
+        c.send(log) # send
+        return False, 'no' #  return login was not authorized with bool and string
 
 
 def signup(c):
@@ -122,7 +122,6 @@ def get_friends(email):
     cur.execute('''SELECT friendlist FROM not_users WHERE email=(?);''', (str(email),))
     con.commit()
     flist = cur.fetchall()
-    print(flist)
     if flist == []:
         return ''
     return flist[0][0]
@@ -132,14 +131,11 @@ def add_friend(email, friend):
     cur.execute('''SELECT name FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
     ans = cur.fetchall()
-    print(ans)
     if ans == []:
         print('bruh')
         return False
     current = get_friends(email)
     updated = (str(current) + str(friend) + '-')
-    print(current)
-    print(updated)
     cur.execute('''UPDATE not_users SET friendlist=(?) WHERE email=(?);''', (updated, str(email)))
     con.commit()
     return True
@@ -149,7 +145,6 @@ def remove_friend(email, friend):
     old_list = get_friends()
     if old_list == []:
         return
-    print(old_list)
     new_list = old_list.replace(str(friend) + '-', '')
     cur.execute('''UPDATE not_users SET friendlist = (?) WHERE email=(?)''', (new_list, email))
     con.commit()
@@ -262,15 +257,21 @@ def handle(client, addr, session_key):
                 client.send(query)
 
             elif split[0] == 'ƒ₧—©±°◙':
-                f = open(f"files\\{str(split[1])}", 'wb')
+                cur.execute('''SELECT id, name FROM not_users WHERE name = (?) ;''', (v[1],))
+                con.commit()
+                ans = cur.fetchall()[0]
+                cur.execute('''INSERT INTO not_files (owner_id, filename, access, owner) VALUES (?, ?, ?, ?);''' , (ans[0], split[1], split[2], ans[1]))
+                con.commit()
                 while True:
                     buff = decrypt_message(client.recv(100), session_key)
                     if buff == '-1':
                         break
                     data = decrypt_file(client.recv(int(buff)), session_key)
-                    f.write(data)
-                f.close()
-                #client.send(encrypt_message(f'{split[1]} uploaded successfully'))*******
+                    cur.execute('''UPDATE not_files SET data = data + (?);''', (data,))
+                    con.commit()
+                query = encrypt_message(f'{split[1]} uploaded successfully', session_key)
+                client.send(encrypt_message(str(len(query)), session_key))
+                client.send(query)
             
             elif split[0] == '▓quit':
                 query = encrypt_message('byebye<>', session_key)

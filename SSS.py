@@ -14,7 +14,6 @@ from kivy.properties import ObjectProperty
 from User import User
 from tkinter import filedialog
 from tkinter import Tk
-import multiprocessing
 
 
 """udp""" # to-do list
@@ -50,28 +49,6 @@ def decrypt_file(encrypted_file, key):
     f = Fernet(key)
     decrypted_file = f.decrypt(encrypted_file)
     return decrypted_file
-
-
-def send_file(f):
-    if f != '':
-        p = str(f.split('/')[-1])
-        file = open(str(f), 'rb')
-        query = encrypt_message(f'ƒ₧—©±°◙<>{p}', skey)
-        length = encrypt_message(str(len(query)), skey)
-        client.send(length)
-        client.send(query)
-        while True:
-            data = file.read(1024)
-            if data == b'':
-                file.close()
-                client.send(encrypt_message('-1', skey))
-                break
-            query = encrypt_file(data, skey)
-            client.send(encrypt_message(str(len(query)), skey))
-            client.send(query)
-            time.sleep(0.0000000001)
-    else:
-        return
 
 
 def invalidUsername():
@@ -295,6 +272,9 @@ class LoginWindow(Screen):
 class MainWindow(Screen):
     tb = ObjectProperty(None) #  text browser
     mtb = ObjectProperty(None) #  main text browser (for writing)
+    pop = Popup(title='Status',auto_dismiss= False,
+                  content=Label(text='Adding friend...'),
+                  size_hint=(None, None), size=(250, 100))
 
     def write(self):
         if not str(self.mtb.text).isspace() and str(self.mtb.text) != '':
@@ -320,11 +300,40 @@ class MainWindow(Screen):
             pass
         sm.current = "login" #  go to the main log-in page
 
+    def send_file(self, f, t):
+        if f != '':
+            p = str(f.split('/')[-1])
+            file = open(str(f), 'rb')
+            query = encrypt_message(f'ƒ₧—©±°◙<>{p}<>{t}', skey)
+            length = encrypt_message(str(len(query)), skey)
+            client.send(length)
+            client.send(query)
+            while True:
+                data = file.read(1024)
+                if data == b'':
+                    file.close()
+                    client.send(encrypt_message('-1', skey))
+                    break
+                query = encrypt_file(data, skey)
+                client.send(encrypt_message(str(len(query)), skey))
+                client.send(query)
+                time.sleep(0.0000000001)
+        else:
+            return
+        length = decrypt_message(client.recv(100), skey)
+        ans = decrypt_message(client.recv(int(length)), skey)
+        if ans == f'{p} uploaded successfully':
+            self.pop.content.text = 'Uploaded file'
+        else:
+            self.pop.content.text = 'Uploading file failed'
+
+
     def sendFile(self):
+        
         Tk().withdraw() #  dismiss the main screen
         filename = filedialog.askopenfilename() #  get picked file path
         if filename != '':
-            file_thread = threading.Thread(target=send_file, args=(filename,))
+            file_thread = threading.Thread(target=self.send_file, args=(filename, target))
             file_thread.start()
 
     def receiv_main(self):
@@ -420,6 +429,7 @@ class AddFriend(Screen):
 
     def add_friend(self):
         global user
+        self.pop.content.text = 'Adding Friend...'
         self.pop.open()
         query = encrypt_message(f'üΩ¥<>{user.email.decode()}<>{self.friend.text}' , skey)
         client.send(encrypt_message(str(len(query)), skey))
@@ -446,7 +456,7 @@ class AddFriend(Screen):
 class RemoveFriend(Screen):
     bx = ObjectProperty(None)
     pop = Popup(title='Status',auto_dismiss= False,
-                  content=Label(text='Adding friend...'),
+                  content=Label(text='Removing friend...'),
                   size_hint=(None, None), size=(250, 100))
 
     def back(self): # a method for the button of going back to the friends screen
@@ -473,6 +483,7 @@ class RemoveFriend(Screen):
 
     def remove_f(self, b): #  is getting the screen and button
         global user #  get the global user variable
+        self.pop.content.text = 'Removing friend...'
         self.pop.open()
         query = encrypt_message(f'™╣¶<>{user.email.decode()}<>{b.text}' , skey)
         client.send(encrypt_message(str(len(query)), skey))
