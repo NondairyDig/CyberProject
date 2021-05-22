@@ -15,8 +15,6 @@ buffer = b''
 files = {}
 con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
 cur = con.cursor()
-buffer_con = sqlite3.connect('buffer.db', check_same_thread=False)
-buff_cur = buffer_con.cursor()
 
 
 def verify(c, addr): #  a function to verify the connection between the server and client (client socket, client address)

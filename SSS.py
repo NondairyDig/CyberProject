@@ -297,8 +297,8 @@ class MainWindow(Screen):
 
     def limit(self):
         if len(str(self.mtb.text)) > 1000:
-            self.mtb.text = ''
             t = self.mtb.text
+            self.mtb.text = ''
             self.mtb.text = t
 
     def logOut(self): #  log-out function
@@ -329,7 +329,8 @@ class MainWindow(Screen):
                 time.sleep(0.0000000001)
             buff = decrypt_message(client.recv(100), skey)
             ans = decrypt_message(client.recv(int(buff)), skey)
-            if ans == 'uploaded successfully©◙ƒ':
+            print(ans)
+            if ans == 'uploaded successfully©◙ƒ<>':
                     self.pop.content.text = 'Uploaded file'
                     self.pop.open()
                     time.sleep(1)
