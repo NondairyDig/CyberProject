@@ -277,7 +277,7 @@ class MainWindow(Screen):
                   size_hint=(None, None), size=(250, 100))
 
     def write(self):
-        if not str(self.mtb.text).isspace() and str(self.mtb.text) != '':
+        if not str(self.mtb.text).isspace() and str(self.mtb.text) != '' and len(str(self.mtb.text)) < 1000 :
             message = f'{nickname}: {self.mtb.text}'
             t = self.tb.text
             self.tb.text = str(t) + str(message) + '\r\n'
@@ -291,6 +291,15 @@ class MainWindow(Screen):
                 print(e)
                 t = self.tb.text
                 self.tb.text =  str(t) + f'couldn\'t send message please try again or restart the app\r\n'
+        elif len(str(self.mtb.text)) < 1000:
+            t = self.tb.text
+            self.tb.text = t + '\r\nCant be empty or longer than 999'
+
+    def limit(self):
+        if len(str(self.mtb.text)) > 1000:
+            self.mtb.text = ''
+            t = self.mtb.text
+            self.mtb.text = t
 
     def logOut(self): #  log-out function
         try:
@@ -318,21 +327,34 @@ class MainWindow(Screen):
                 client.send(encrypt_message(str(len(query)), skey))
                 client.send(query)
                 time.sleep(0.0000000001)
+            buff = decrypt_message(client.recv(100), skey)
+            ans = decrypt_message(client.recv(int(buff)), skey)
+            if ans == 'uploaded successfully©◙ƒ':
+                    self.pop.content.text = 'Uploaded file'
+                    self.pop.open()
+                    time.sleep(1)
+                    self.pop.dismiss()
+                    self.receive()
+                    return
+            else:
+                self.pop.content.text = 'Uploading file failed'
+                self.pop.open()
+                time.sleep(1)
+                self.pop.dismiss()
+                self.receive()
+                return
         else:
             return
-        length = decrypt_message(client.recv(100), skey)
-        ans = decrypt_message(client.recv(int(length)), skey)
-        if ans == f'{p} uploaded successfully':
-            self.pop.content.text = 'Uploaded file'
-        else:
-            self.pop.content.text = 'Uploading file failed'
-
 
     def sendFile(self):
-        
         Tk().withdraw() #  dismiss the main screen
         filename = filedialog.askopenfilename() #  get picked file path
         if filename != '':
+            query = encrypt_message('▓quitf', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            self.pop.content.text = "Uploading file..."
+            self.pop.open()
             file_thread = threading.Thread(target=self.send_file, args=(filename, target))
             file_thread.start()
 
@@ -342,15 +364,17 @@ class MainWindow(Screen):
                 buff = decrypt_message(client.recv(100), skey)
                 message = decrypt_message(client.recv(int(buff)), skey)
                 k = message.split('<>')
-                if k[0] == 'byebye':
+                if k[0] == 'byebye±°':
                     sm.current = "friends"
                     return
+
+                if k[0] == 'filing±°':
+                    return
+
                 else:
                     t = self.tb.text
-                    self.tb.text = t + k[1]
-
-                if k[0] == '':
-                    print('end')
+                    self.tb.text = t + k[0]
+            
 
             except Exception as e:
                 print('An error occurred: ' + str(e))

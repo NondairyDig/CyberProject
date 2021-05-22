@@ -262,19 +262,26 @@ def handle(client, addr, session_key):
                 ans = cur.fetchall()[0]
                 cur.execute('''INSERT INTO not_files (owner_id, filename, access, owner) VALUES (?, ?, ?, ?);''' , (ans[0], split[1], split[2], ans[1]))
                 con.commit()
+                data = b''
                 while True:
                     buff = decrypt_message(client.recv(100), session_key)
                     if buff == '-1':
                         break
-                    data = decrypt_file(client.recv(int(buff)), session_key)
-                    cur.execute('''UPDATE not_files SET data = data + (?);''', (data,))
-                    con.commit()
-                query = encrypt_message(f'{split[1]} uploaded successfully', session_key)
+                    data += decrypt_file(client.recv(int(buff)), session_key)
+                cur.execute('''UPDATE not_files SET data = (?) WHERE filename = (?);''', (data, split[1]))
+                con.commit()
+                query = encrypt_message('uploaded successfully©◙ƒ<>', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
             
+            elif split[0] == '▓quitf':
+                query = encrypt_message('filing±°<>', session_key)
+                client.send(encrypt_message(str(len(query)), session_key))
+                client.send(query)
+
+
             elif split[0] == '▓quit':
-                query = encrypt_message('byebye<>', session_key)
+                query = encrypt_message('byebye±°<>', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
                 broadcast(split[2], split[1], client)

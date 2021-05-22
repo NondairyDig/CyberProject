@@ -241,6 +241,7 @@
             size_hint:0.82, 0.15
             pos_hint:{"x":0.05, "y": 0.05}
             on_text_validate: root.write()
+            on_text: root.limit()
 
         Button:
             text: "Upload File"
