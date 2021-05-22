@@ -17,7 +17,7 @@ from tkinter import Tk
 import os
 
 
-"""udp""" # to-do list
+"""udp, files, message history,  notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
 skey = b''  # global variable for session key
