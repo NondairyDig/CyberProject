@@ -14,6 +14,7 @@ from kivy.properties import ObjectProperty
 from User import User
 from tkinter import filedialog
 from tkinter import Tk
+import os
 
 
 """udp""" # to-do list
@@ -329,7 +330,6 @@ class MainWindow(Screen):
                 time.sleep(0.0000000001)
             buff = decrypt_message(client.recv(100), skey)
             ans = decrypt_message(client.recv(int(buff)), skey)
-            print(ans)
             if ans == 'uploaded successfully©◙ƒ<>':
                     self.pop.content.text = 'Uploaded file'
                     self.pop.open()
@@ -350,14 +350,20 @@ class MainWindow(Screen):
     def sendFile(self):
         Tk().withdraw() #  dismiss the main screen
         filename = filedialog.askopenfilename() #  get picked file path
-        if filename != '':
-            query = encrypt_message('▓quitf', skey)
-            client.send(encrypt_message(str(len(query)), skey))
-            client.send(query)
-            self.pop.content.text = "Uploading file..."
+        if int(os.path.getsize(filename)) < 1000000:
+            if filename != '':
+                query = encrypt_message('▓quitf', skey)
+                client.send(encrypt_message(str(len(query)), skey))
+                client.send(query)
+                self.pop.content.text = "Uploading file..."
+                self.pop.open()
+                file_thread = threading.Thread(target=self.send_file, args=(filename, target))
+                file_thread.start()
+        else:
+            self.pop.content.text = "File is too large"
             self.pop.open()
-            file_thread = threading.Thread(target=self.send_file, args=(filename, target))
-            file_thread.start()
+            time.sleep(1)
+            self.pop.dismiss()
 
     def receiv_main(self):
         while True:
@@ -479,14 +485,14 @@ class AddFriend(Screen):
 
 
 class RemoveFriend(Screen):
-    bx = ObjectProperty(None)
-    pop = Popup(title='Status',auto_dismiss= False,
+    bx = ObjectProperty(None) # id for a layout in kivy
+    pop = Popup(title='Status',auto_dismiss= False, # create a popup
                   content=Label(text='Removing friend...'),
                   size_hint=(None, None), size=(250, 100))
 
     def back(self): # a method for the button of going back to the friends screen
         sm.current = "friends" #  go back to the friends screen
-        sm.current_screen.load()
+        sm.current_screen.load() #  call the loading friends method of the friends screen
 
     def load(self): # a method for loading the friendlist
         self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size

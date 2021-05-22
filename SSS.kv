@@ -224,6 +224,7 @@
 <MainWindow>:
     tb: tb
     mtb: mtb
+    bx:bx
 
     FloatLayout:
         Label:
@@ -264,3 +265,17 @@
             font_size: 16
             on_release:
                 root.logOut()
+        ScrollView:
+            size_hint: 0.1, 0.4
+            pos_hint: {"x":0.88, "top": 0.9}
+            GridLayout:
+                id:bx
+                cols:1
+                size_hint_y: None
+                row_default_height: '20dp'
+                row_force_default: True
+                spacing: 0, 0
+                padding: 0, 0
+                Label:
+                    text:"File Repo:"
+                    font_size: 14

@@ -272,6 +272,12 @@ def handle(client, addr, session_key):
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
             
+            elif split[0] == '₧ƒ': #  client-server signal for loading files
+                pass
+
+            elif split[0] == '◙°±©—₧ƒ': #  client-server signal for getting a file
+                pass
+            
             elif split[0] == '▓quitf':
                 query = encrypt_message('filing±°<>', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
