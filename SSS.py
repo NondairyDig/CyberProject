@@ -1,4 +1,5 @@
 from tkinter.constants import FALSE
+import kivy
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
@@ -15,6 +16,7 @@ from User import User
 from tkinter import filedialog
 from tkinter import Tk
 import os
+import sys
 
 
 """udp, files, message history,  notifications""" # to-do list
@@ -33,11 +35,11 @@ def decrypt_message(encrypted_message, key): #  decrypt a message using Fernet m
     return decrypted_message.decode() #  return the decrypted message as plain text
 
 
-def encrypt_message(message, key):
-    encoded_message = message.encode()
-    f = Fernet(key)
-    encrypted_message = f.encrypt(encoded_message)
-    return encrypted_message
+def encrypt_message(message, key): # a function to encrypt a message
+    encoded_message = message.encode() # encode the message (module recievs only bytes)
+    f = Fernet(key) #  initiate the module
+    encrypted_message = f.encrypt(encoded_message) #  encrypt the message
+    return encrypted_message #  return the encrypted message
 
 
 def encrypt_file(file, key):
@@ -87,7 +89,7 @@ class CreateAccountWindow(Screen):
         s_email = self.email.text
         s_password = self.password.text
         self.pop.open()
-        if len(s_username) < 1:
+        if len(s_username) < 1 or s_username.isalnum() == False:
             invalidUsername()
             self.email.text = ""
             self.password.text = ""
@@ -206,7 +208,6 @@ class LoginWindow(Screen):
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
-            self.username.text = ""
             return
         
         if len(s_password) < 7:
@@ -273,9 +274,72 @@ class LoginWindow(Screen):
 class MainWindow(Screen):
     tb = ObjectProperty(None) #  text browser
     mtb = ObjectProperty(None) #  main text browser (for writing)
+    gx = ObjectProperty(None) # gridlayout of files
+    up = ObjectProperty(None) # upload file button
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Adding friend...'),
                   size_hint=(None, None), size=(250, 100))
+
+    def getfile(self, b):
+        Tk().withdraw() #  dismiss the main screen
+        pathname = filedialog.askdirectory() #  get save path
+        if pathname == '':
+            return
+        query = encrypt_message('▓quitf', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        f_t = threading.Thread(target=self.getfile_main, args=(b, pathname))
+        f_t.start()
+
+    def getfile_main(self, b, d):
+        try:
+            file = open(str(d) + str(b.text), 'ab')
+            self.pop.content.text = "Getting file..."
+            self.pop.open()
+            query = encrypt_message(f'◙°±©—₧ƒ<>{b.text}<>{user.nick}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            data = ''
+            while True:
+                buff = decrypt_message(client.recv(100), skey)
+                print('buff: ' + buff)
+                if buff == '-1' or data == b'-1':
+                    break
+                data = decrypt_file(client.recv(int(buff)), skey)
+                file.write(data)
+            self.pop.content.text = "File Received"
+            time.sleep(1)
+            self.pop.dismiss()
+            self.receive()
+            return
+        except Exception as e:
+            print(e)
+            self.pop.content.text = 'An error occurd please wait or restart the app'
+            self.pop.open()
+            time.sleep(1)
+            self.pop.dismiss()
+            self.receive()
+            return
+
+
+    def load(self): # a function to load files
+        global target
+        self.gx.bind(minimum_height=self.gx.setter('height')) #  adapt layout size
+        query = encrypt_message(f'₧ƒ<>{user.nick}<>{target}', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        length = decrypt_message(client.recv(100), skey)
+        filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fillist from server and sort it
+        check = False #  set a variable for checking duplicates
+        if filelist != ['']: #  check if filelist is not empty
+            for file in filelist: #  go over recived filelist
+                for obj in self.gx.children: #  go over the existing widgets in layout
+                    if file == obj.text: #  check if button already exiest for file
+                        check = True # if found duplicate let the program know 
+                        break #  end the inside loop
+                if file != '' and not check: #  if file is not nothing and his duplicate not found
+                    self.gx.add_widget(Button(text=file, on_release=self.getfile)) #  add button to friend
+                check = False #  reset the duplicate checking variable
 
     def write(self):
         if not str(self.mtb.text).isspace() and str(self.mtb.text) != '' and len(str(self.mtb.text)) < 1000 :
@@ -308,7 +372,8 @@ class MainWindow(Screen):
             delete.write(b'') #  reset the file
         except:
             pass
-        sm.current = "login" #  go to the main log-in page
+        os.system("python SSS.py") # restart application
+        sys.exit()
 
     def send_file(self, f, t):
         if f != '':
@@ -335,6 +400,7 @@ class MainWindow(Screen):
                     self.pop.open()
                     time.sleep(1)
                     self.pop.dismiss()
+                    self.load()
                     self.receive()
                     return
             else:
@@ -342,6 +408,7 @@ class MainWindow(Screen):
                 self.pop.open()
                 time.sleep(1)
                 self.pop.dismiss()
+                self.load()
                 self.receive()
                 return
         else:
@@ -350,8 +417,8 @@ class MainWindow(Screen):
     def sendFile(self):
         Tk().withdraw() #  dismiss the main screen
         filename = filedialog.askopenfilename() #  get picked file path
-        if int(os.path.getsize(filename)) < 1000000:
-            if filename != '':
+        if filename != '':
+            if int(os.path.getsize(filename)) < 10000000: #  limit file size to 10 MB
                 query = encrypt_message('▓quitf', skey)
                 client.send(encrypt_message(str(len(query)), skey))
                 client.send(query)
@@ -365,7 +432,7 @@ class MainWindow(Screen):
             time.sleep(1)
             self.pop.dismiss()
 
-    def receiv_main(self):
+    def receive_main(self):
         while True:
             try:
                 buff = decrypt_message(client.recv(100), skey)
@@ -373,6 +440,7 @@ class MainWindow(Screen):
                 k = message.split('<>')
                 if k[0] == 'byebye±°':
                     sm.current = "friends"
+                    sm.current_screen.load()
                     return
 
                 if k[0] == 'filing±°':
@@ -381,14 +449,15 @@ class MainWindow(Screen):
                 else:
                     t = self.tb.text
                     self.tb.text = t + k[0]
-            
 
             except Exception as e:
-                print('An error occurred: ' + str(e))
-                return
+                self.pop.content.text = 'An error occurred please wait or restart the app'
+                self.pop.open()
+                time.sleep(1)
+                self.pop.dismiss()
 
     def receive(self):
-        r_t = threading.Thread(target=self.receiv_main)
+        r_t = threading.Thread(target=self.receive_main)
         r_t.start()
 
 
@@ -444,6 +513,7 @@ class FriendsScreen(Screen):
         global target
         target = button.text
         sm.current = "main"
+        sm.current_screen.load()
         sm.current_screen.receive()
 
     def remove_friend(self):
@@ -544,21 +614,18 @@ class WindowManager(ScreenManager):
 
 #  start of pre-load operation
 kv = Builder.load_file("SSS.kv")
-
 sm = WindowManager()
 
 screens = [AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
 for screen in screens:
     sm.add_widget(screen)
 
-sm.size_hint_min = 0.5, 0.5
 sm.current = "login" #  start from log-in window
 sm.current_screen.kook() #  check for automatic log-in with the kook() function
 
 class SSS(App):
     def build(self):
         return sm #  return the screen manager, type: WindowManager
-
 
 if __name__ == "__main__":
     SSS().run() #  run GUI

@@ -1,3 +1,4 @@
+from ctypes import c_int
 import threading
 import socket
 import rsa
@@ -241,20 +242,18 @@ def handle(client, addr, session_key):
                     client.send(encrypt_message(str(len(query)), session_key))
                     client.send(query)
             
-            elif split[0] == '™╣¶':
+            elif split[0] == '™╣¶': #  client-server signal for removing a friend
                 remove_friend(split[1], split[2])
                 query = encrypt_message('removed', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
-                print(len(query))
-                print(query)
                 client.send(query)
 
-            elif split[0] == 'ø∞ö':
+            elif split[0] == 'ø∞ö': #  client-server signal for getting friendlist
                 query = encrypt_message(get_friends(split[1]), session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
 
-            elif split[0] == 'ƒ₧—©±°◙':
+            elif split[0] == 'ƒ₧—©±°◙': #  client-server signal for uploading a file to the server
                 cur.execute('''SELECT id, name FROM not_users WHERE name = (?) ;''', (v[1],))
                 con.commit()
                 ans = cur.fetchall()[0]
@@ -273,30 +272,59 @@ def handle(client, addr, session_key):
                 client.send(query)
             
             elif split[0] == '₧ƒ': #  client-server signal for loading files
-                pass
+                cur.execute('''SELECT filename FROM not_files WHERE access = (?) AND owner = (?);''', (split[1], split[2]))
+                con.commit()
+                filelist = cur.fetchall()
+                if filelist == []:
+                    query = encrypt_message('', session_key)
+                    client.send(encrypt_message(str(len(query)), session_key))
+                    client.send(query)
+                else:
+                    tosend = ''
+                    for file in filelist:
+                        tosend += str(file[0]) + '-'
+                    query = encrypt_message(tosend, session_key)
+                    client.send(encrypt_message(str(len(query)), session_key))
+                    client.send(query)
 
             elif split[0] == '◙°±©—₧ƒ': #  client-server signal for getting a file
-                pass
-            
-            elif split[0] == '▓quitf':
+                temp = open('files\\temp', 'wb')
+                cur.execute('''SELECT data FROM not_files WHERE filename = (?) AND access = (?);''', (str(split[1]), str(split[2])))
+                con.commit()
+                data = cur.fetchall()[0][0]
+                temp.write(data)
+                temp.close()
+                temp = open('files\\temp', 'rb')
+                while True:
+                    data = temp.read(1024)
+                    if data == b'':
+                        print('closing')
+                        temp.close()
+                        client.send(encrypt_message('-1', session_key))
+                        break
+                    query = encrypt_file(data, session_key)
+                    client.send(encrypt_message(str(len(query)), session_key))
+                    client.send(query)
+                    time.sleep(0.0000000001)
+
+            elif split[0] == '▓quitf': # signal for quiting temporerly
                 query = encrypt_message('filing±°<>', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
 
-
-            elif split[0] == '▓quit':
-                query = encrypt_message('byebye±°<>', session_key)
+            elif split[0] == '▓quit': #  signal for quiting
+                query = encrypt_message('byebye±°<>', session_key) #  send encrypted signal for quitting
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
                 broadcast(split[2], split[1], client)
 
-            elif split[0] == 't◙':
+            elif split[0] == 't◙': # server signal for adding or removing from public room
                 if split[1] == 'public':
                     public.append((client, v[1], session_key))
                 if split[1] == 'quit_pub':
                     public.remove((client, v[1], session_key))
 
-            else:
+            else: #  if no signal was called then broadcast the message to the target
                 broadcast(split[2], split[1], client)
         except Exception as e:
             print(e)

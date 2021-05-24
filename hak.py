@@ -12,13 +12,17 @@ con.commit()
 curs.execute('''CREATE TABLE not_files (owner_id INTEGER, filename TEXT, access TEXT, owner TEXT, data BLOB, FOREIGN KEY(owner_id) REFERENCES not_users(id));''')
 con.commit()
 con.close()"""
-
+"""
 import sqlite3
 
-com = sqlite3.connect('notthesecretdatabase.db')
-cur = com.cursor()
+con = sqlite3.connect('notthesecretdatabase.db')
+cur = con.cursor()
 
-cur.execute('''SELECT data FROM not_files WHERE filename = (?);''', ('B&H Invoice.pdf',))
-data = cur.fetchall()[0][0]
-f = open('bruh.pdf', 'wb')
-f.write(data)
+cur.execute('''SELECT filename FROM not_files WHERE access = (?) AND owner_id = (?);''', ('bruh', 'asdf'))
+con.commit()
+filelist = cur.fetchall()
+print(filelist)"""
+word= 'Mm6Dplx9JoHazOyllF0qp4GnpTHLpTNWsXPsbpp6HJbGDGDZpMURCzxJMrPVB4CnSvBn5yEVXhrEshvTeUdr29QO3UBAUoRuLYb9EU73RhYuAspjW1rpDa6Q03cvBj1yA9M25dHk0SuDv4TJD2VeVXKAuTHsLIWJdig9dOL5xmSHZVa8ZMHd8ymc0f4PSXoAQCi4i9GPix0L0cLfZhZRoRrIWkOS3TmJCNqKA8ZceomtbapuH6a51jp4IFTUZcn2dlZl9EC4tcMjxoXaub8D7K84lroNo2VTjAXIeBeKXRcrtUiMhjrVxOhFoao1QH61HQAec9tTkNLhH2RbsRDAVEF2b9HfaW2ECheYrzc7ffC3BW8Rg2OL3NNVpeYIEObYUAmjzoVwHcEYiIS4JTBzRViiOyaaVF0jyWEPlkqDyEWyXT2GVQ5Om9qIKU4m4nAZS7PyEeI80mtvHfXjjElP5RBaJEq52qzHxb6C6KkpK6bVQZBKbPVpkD2uM8ehJeaex9EMsLfeEgm5Wcj3bRzShMfLFKD6Gn8BVXO6Rc6RdGqeOAQK1txz3d8YHPiNLRogBgdtcRJ7sQsvEEWamr15qgeIUCHwvgbMU20Dnic4DDKUxo2xts6uCeAZY1lTqcBUS0U0jiICWzHNFgz7JWWEjOHyBVEGJot7EgsrRucbfUY0eK94PPfwnEiUB7krlVkvDJFmx2vUDM19eSk4Yps5Z0Ip6G7K2FGgP0XvhJ6dh8m8smdYCpOv2KuJLYGspZDD5Xs7FFmwgA8S4CVldqBUkHYePHdl3ivx5HheyDp0QTc5zkw62U0zQwa2IwXgzXWCJy1OHUcXCOmlR3Urrpeeguv6lfpwoNVIs0k8uRPzUbZ1KCFM2ytCF2Xbwqg0nMJIQ3bKY2H04g7u9qCQgnWxOgwDbiZeWJgSDA4h52B8o88GTIBlWTkRS7zJ2pCQcdUkV9Dw2wVCFAFWSK0U2x6SrU5GEpM1Xgt9dDer0SX7gTrx5B6ivObjTqytIXHdIDXBn'
+print([word[i : i + 1024] for i in range(0, len(word), 1024)])
+print(len('Mm6Dplx9JoHazOyllF0qp4GnpTHLpTNWsXPsbpp6HJbGDGDZpMURCzxJMrPVB4CnSvBn5yEVXhrEshvTeUdr29QO3UBAUoRuLYb9EU73RhYuAspjW1rpDa6Q03cvBj1yA9M25dHk0SuDv4TJD2VeVXKAuTHsLIWJdig9dOL5xmSHZVa8ZMHd8ymc0f4PSXoAQCi4i9GPix0L0cLfZhZRoRrIWkOS3TmJCNqKA8ZceomtbapuH6a51jp4IFTUZcn2dlZl9EC4tcMjxoXaub8D7K84lroNo2VTjAXIeBeKXRcrtUiMhjrVxOhFoao1QH61HQAec9tTkNLhH2RbsRDAVEF2b9HfaW2ECheYrzc7ffC3BW8Rg2OL3NNVpeYIEObYUAmjzoVwHcEYiIS4JTBzRViiOyaaVF0jyWEPlkqDyEWyXT2GVQ5Om9qIKU4m4nAZS7PyEeI80mtvHfXjjElP5RBaJEq52qzHxb6C6KkpK6bVQZBKbPVpkD2uM8ehJeaex9EMsLfeEgm5Wcj3bRzShMfLFKD6Gn8BVXO6Rc6RdGqeOAQK1txz3d8YHPiNLRogBgdtcRJ7sQsvEEWamr15qgeIUCHwvgbMU20Dnic4DDKUxo2xts6uCeAZY1lTqcBUS0U0jiICWzHNFgz7JWWEjOHyBVEGJot7EgsrRucbfUY0eK94PPfwnEiUB7krlVkvDJFmx2vUDM19eSk4Yps5Z0Ip6G7K2FGgP0XvhJ6dh8m8smdYCpOv2KuJLYGspZDD5Xs7FFmwgA8S4CVldqBUkHYePHdl3ivx5HheyDp0QTc5zkw62U0zQwa2IwXgzXWCJy1OHUcXCOmlR3Urrpeeguv6lfpwoNVIs0k8uRPzUbZ1KCFM2ytCF2Xbwqg0nMJIQ3bKY2H04g7u9qCQgnWxOgwDbiZeWJgSDA4h52B8o88GTIBlWTkRS7zJ2pCQcdUkV9Dw2wVCFAFWSK0U2x6SrU5GEpM1Xgt9dDer0SX7gTrx5B6ivObjTqytIXHdIDXB'))
+print(len(word))
