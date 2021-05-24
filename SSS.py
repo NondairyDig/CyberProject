@@ -19,7 +19,7 @@ import os
 import sys
 
 
-"""udp, files, message history,  notifications""" # to-do list
+"""udp, message history, notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
 skey = b''  # global variable for session key
@@ -293,7 +293,8 @@ class MainWindow(Screen):
 
     def getfile_main(self, b, d):
         try:
-            file = open(str(d) + str(b.text), 'ab')
+            file = open(str(d) + '\\'+ str(b.text), 'ab')
+            print(str(d) + b.text)
             self.pop.content.text = "Getting file..."
             self.pop.open()
             query = encrypt_message(f'◙°±©—₧ƒ<>{b.text}<>{user.nick}', skey)
@@ -302,7 +303,6 @@ class MainWindow(Screen):
             data = ''
             while True:
                 buff = decrypt_message(client.recv(100), skey)
-                print('buff: ' + buff)
                 if buff == '-1' or data == b'-1':
                     break
                 data = decrypt_file(client.recv(int(buff)), skey)
