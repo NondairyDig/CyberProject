@@ -294,7 +294,6 @@ class MainWindow(Screen):
     def getfile_main(self, b, d):
         try:
             file = open(str(d) + '\\'+ str(b.text), 'ab')
-            print(str(d) + b.text)
             self.pop.content.text = "Getting file..."
             self.pop.open()
             query = encrypt_message(f'◙°±©—₧ƒ<>{b.text}<>{user.nick}', skey)
