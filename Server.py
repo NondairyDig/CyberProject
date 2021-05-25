@@ -20,13 +20,12 @@ cur = con.cursor()
 
 def verify(c, addr): #  a function to verify the connection between the server and client (client socket, client address)
     (pubv, privv) = rsa.newkeys(511) #  generate a public and privat key for rsa encryption
-    message = c.recv(20) #  a message to verify
+    message = 'ö∞øⁿŒç¼•¥Ωü§◙±©'.encode() #  a message to verify
     signature = rsa.sign(message, privv, 'SHA-1') #  create a signature of server
     c.send(str(pubv.n).encode()) #  send public key part
     c.send(str(pubv.e).encode()) #  send public key part
     c.send(signature) # send signature to compare
-    message = '©±°◙§≡üΩ¥•¼·ëçŒ▓✠ⁿø∞ö'.encode() #  send a message to verify
-    c.send(message) # ~
+    message = '©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö'.encode() #  shared secret to verify
     no = int(c.recv(154).decode()) #  get the public key part
     eo = int(c.recv(5).decode()) #  get the public key part
     pubv = rsa.key.PublicKey(no, eo) #  assemble the public key

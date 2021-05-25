@@ -84,8 +84,7 @@ class User:
     def verify(self):
         self.client.send('V'.encode())
         time.sleep(0.3)
-        message = (self.nick + 'comp').encode()
-        self.client.send(message)
+        message = 'ö∞øⁿŒç¼•¥Ωü§◙±©'.encode() 
         n = int(self.client.recv(154).decode())
         e = int(self.client.recv(5).decode())
         pubkey = rsa.key.PublicKey(n, e)
@@ -95,7 +94,7 @@ class User:
         (pubkey, privkey) = rsa.newkeys(511)
         n = pubkey.n
         e = pubkey.e
-        message = self.client.recv(1024)
+        message = '©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö'.encode()
         signaturev = rsa.sign(message, privkey, 'SHA-1')
         self.client.send(str(n).encode())
         self.client.send(str(e).encode())
