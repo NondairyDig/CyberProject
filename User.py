@@ -20,7 +20,7 @@ class User:
         self.pass_ = p.digest() #  password hash
         self.email = emailname.encode() # email
         self.client = user_socket
-        self.f_list = fr_list
+        #self.f_list = fr_list
         #self.fast = email_socket_udp
 
     def login(self):

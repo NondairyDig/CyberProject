@@ -1,5 +1,6 @@
-from tkinter.constants import FALSE
+from tkinter.constants import FALSE, W
 import kivy
+from kivy.core import text
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
@@ -27,7 +28,6 @@ user = '' #  global variable for user
 nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '127.0.0.1'  # server address
-save = False  # global variable whether to save the file or not
 
 def decrypt_message(encrypted_message, key): #  decrypt a message using Fernet module
     f = Fernet(key) #  initialize module in parameter
@@ -42,32 +42,32 @@ def encrypt_message(message, key): # a function to encrypt a message
     return encrypted_message #  return the encrypted message
 
 
-def encrypt_file(file, key):
+def encrypt_file(file, key): #  a function for encrypting a file( a message in binary)
     f = Fernet(key)
     encrypted_file = f.encrypt(file)
     return encrypted_file
 
 
-def decrypt_file(encrypted_file, key):
+def decrypt_file(encrypted_file, key): #  a function for decrypting a file( a message in binary)
     f = Fernet(key)
     decrypted_file = f.decrypt(encrypted_file)
     return decrypted_file
 
 
-def invalidUsername():
+def invalidUsername(): #  a function of notifieng if the username entered is not valid
     pop = Popup(title='Invalid Username',
-                  content=Label(text='please enter username.'),
+                  content=Label(text='username needs to contain only numbers and letters if empty, please enter username.'),
                   size_hint=(None, None), size=(400, 400))
     pop.open()
 
-def invalidPassword():
+def invalidPassword(): #  a function of notifieng if the password entered is not valid
     pop = Popup(title='Invalid Password',
-                  content=Label(text='Password needs to be at least 7 charachters long.'),
+                  content=Label(text='Password needs to be at between 7 and 35 charachters long.'),
                   size_hint=(None, None), size=(400, 400))
 
     pop.open()
 
-def invalidEmail():
+def invalidEmail(): #  a function of what to do if the email entered is not valid
     pop = Popup(title='Invalid Email',
                   content=Label(text='Please Re-enter Email'),
                   size_hint=(None, None), size=(400, 400))
@@ -75,7 +75,7 @@ def invalidEmail():
     pop.open()
 
 
-class CreateAccountWindow(Screen):
+class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed for kivy(GUI))
     username = ObjectProperty(None)
     email = ObjectProperty(None)
     password = ObjectProperty(None)
@@ -84,7 +84,7 @@ class CreateAccountWindow(Screen):
                   content=Label(text='Connecting...'),
                   size_hint=(None, None), size=(250, 100))
 
-    def submit(self):
+    def submit(self): #  a function that is called by a submit/sign-up button to check the validty the entered information
         s_username = self.username.text
         s_email = self.email.text
         s_password = self.password.text
@@ -96,14 +96,14 @@ class CreateAccountWindow(Screen):
             self.username.text = ""
             return
 
-        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)):
+        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum():
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""
             return
 
-        if len(s_password) < 7:
+        if len(s_password) < 7 or len(s_password) > 36:
             invalidPassword()
             self.email.text = ""
             self.password.text = ""
@@ -204,13 +204,13 @@ class LoginWindow(Screen):
     def loginBtn(self):
         s_email = self.email.text
         s_password = self.password.text
-        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)):
+        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum():
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
             return
         
-        if len(s_password) < 7:
+        if len(s_password) < 7 or len(s_password) > 35:
             invalidPassword()
             self.email.text = ""
             self.password.text = ""
@@ -320,7 +320,6 @@ class MainWindow(Screen):
             self.receive()
             return
 
-
     def load(self): # a function to load files
         global target
         self.gx.bind(minimum_height=self.gx.setter('height')) #  adapt layout size
@@ -339,6 +338,12 @@ class MainWindow(Screen):
                 if file != '' and not check: #  if file is not nothing and his duplicate not found
                     self.gx.add_widget(Button(text=file, on_release=self.getfile)) #  add button to friend
                 check = False #  reset the duplicate checking variable
+        query = encrypt_message(f'§≡üΩ¥•¼<>{target}<>{user.nick}', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        length = decrypt_message(client.recv(100), skey)
+        history = decrypt_message(client.recv(int(length)), skey)
+        self.tb.text = history
 
     def write(self):
         if not str(self.mtb.text).isspace() and str(self.mtb.text) != '' and len(str(self.mtb.text)) < 1000 :
@@ -357,15 +362,18 @@ class MainWindow(Screen):
                 self.tb.text =  str(t) + f'couldn\'t send message please try again or restart the app\r\n'
         elif len(str(self.mtb.text)) < 1000:
             t = self.tb.text
-            self.tb.text = t + '\r\nCant be empty or longer than 999'
+            self.tb.text = t + '\r\nCant be empty or longer than 999 chars'
 
-    def limit(self):
+    def limit(self): #  called when text is inputed to check if the message is not greater then 1000 words
         if len(str(self.mtb.text)) > 1000:
             t = self.mtb.text
             self.mtb.text = ''
             self.mtb.text = t
 
     def logOut(self): #  log-out function
+        query = encrypt_message('▓quit<>' + target + '<>' + f'{user.nick} left the room', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
         try:
             delete = open('UserData.txt', 'wb') #  open "cookie" file
             delete.write(b'') #  reset the file
@@ -478,6 +486,8 @@ class MainWindow(Screen):
 
 class FriendsScreen(Screen):
     bx = ObjectProperty(None)
+    rq = ObjectProperty(None)
+
     def add_friend_screen(self):
         sm.current = "addfriend"
 
@@ -485,6 +495,9 @@ class FriendsScreen(Screen):
         global target
         target = 'public'
         query = encrypt_message('t◙<>public', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        query = encrypt_message(f'§≡üΩ¥•¼<>public<>{user.nick}', skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         sm.current = "main"
@@ -496,7 +509,7 @@ class FriendsScreen(Screen):
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
-        friendlist = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
+        friendlist = sorted(decrypt_message(client.recv(int(length)), skey).split('-'), key=str.lower) #  get friendlist string from server make it a list and sort it
         check = False #  set a variable for checking duplicates
         if friendlist != ['']: #  check if friendlist is not empty
             for friend in friendlist: #  go over recived friendlist
@@ -507,6 +520,12 @@ class FriendsScreen(Screen):
                 if friend != '' and not check: #  if friend is not nothing and his duplicate not found
                     self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
                 check = False #  reset the duplicate checking variable
+        query = encrypt_message(f'é<>{user.email.decode()}', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        length = decrypt_message(client.recv(100), skey)
+        number_of_requests = decrypt_message(client.recv(int(length)), skey)
+        self.rq.text = f'Friend Requests ({str(number_of_requests)})'
 
     def start_private(self, button):
         global target
@@ -517,6 +536,10 @@ class FriendsScreen(Screen):
 
     def remove_friend(self):
         sm.current = "remove"
+        sm.current_screen.load()
+    
+    def friend_requests(self):
+        sm.current = "requests"
         sm.current_screen.load()
 
 
@@ -537,7 +560,7 @@ class AddFriend(Screen):
         length = decrypt_message(client.recv(100), skey)
         ans = decrypt_message(client.recv(int(length)), skey)
         if ans == 'added':
-            self.pop.content.text = 'Added friend successfully'
+            self.pop.content.text = 'Friend request sent successfully'
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"
@@ -606,6 +629,50 @@ class RemoveFriend(Screen):
             sm.current_screen.load()
 
 
+class Requests(Screen):
+    bx = ObjectProperty(None)
+    pop = Popup(title='Status',auto_dismiss= False, # create a popup
+                  content=Label(text='Friend'),
+                  size_hint=(None, None), size=(250, 100))
+    
+    def back(self):
+        sm.current = "friends"
+        sm.current_screen.load()
+
+    def load(self): # a method for loading the friend requests
+        self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
+        query = encrypt_message(f'₧—é<>{user.name}<>', skey) #  send the required signal to the server
+        client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+        client.send(query) #  send the request to the server
+        length = decrypt_message(client.recv(100), skey) #  get len of answer from server
+        requests = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
+        check = False #  set a variable for checking duplicates
+        if requests != ['']: #  check if requests are not empty
+            for request in requests: #  go over recived requests
+                for obj in self.bx.children: #  go over the existing widgets in layout
+                    if request == obj.text + ':': #  check if request already exiests
+                        check = True # if found duplicate let the program know 
+                        break #  end the inside loop for better runtime
+                if request != '' and not check: #  if request is not nothing and its duplicate not found
+                    self.bx.add_widget(Label(text=(request + ':')))
+                    self.bx.add_widget(Button(text=('accept ' + request), on_release=self.accept_reject)) #  add button to accept
+                    self.bx.add_widget(Button(text=('reject ' + request), on_release=self.accept_reject)) #  add button to reject
+                check = False #  reset the duplicate checking variable
+    def accept_reject(self, b):
+        ans = b.text.split(' ')
+        if ans[0] == 'accept':
+            query = encrypt_message(f'éè╣<>accept<>{user.name}<>{ans[1]}', skey) #  send the required signal to the server
+            client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+            client.send(query) #  send the request to the server
+
+        if ans[0] == 'reject':
+            query = encrypt_message(f'éè╣<>reject<>{user.name}<>{ans[1]}', skey) #  send the required signal to the server
+            client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+            client.send(query) #  send the request to the server
+
+        sm.current == 'friends'
+        sm.current_screen.load()
+
 
 class WindowManager(ScreenManager):
     pass
@@ -615,7 +682,7 @@ class WindowManager(ScreenManager):
 kv = Builder.load_file("SSS.kv")
 sm = WindowManager()
 
-screens = [AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
+screens = [Requests(name="requests") ,AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
 for screen in screens:
     sm.add_widget(screen)
 

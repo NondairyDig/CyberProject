@@ -1,3 +1,4 @@
+from SSS import Requests
 from ctypes import c_int
 import threading
 import socket
@@ -109,8 +110,8 @@ def signup(c):
         return False
     p = sha3_256()
     p.update(m2 + m1)
-    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist)
-                VALUES (?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), ''))
+    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist, friendrequests, notifications)
+                VALUES (?, ?, ?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), '', '', ''))
     con.commit()
     c.send(rsa.encrypt('succep'.encode(), pub))
     return True
@@ -130,11 +131,12 @@ def add_friend(email, friend):
     con.commit()
     ans = cur.fetchall()
     if ans == []:
-        print('bruh')
         return False
-    current = get_friends(email)
+    cur.execute('''SELECT friendrequests FROM not_users WHERE email = (?);''', (str(email),))
+    con.commit()
+    current = cur.fetchall()[0][0]
     updated = (str(current) + str(friend) + '-')
-    cur.execute('''UPDATE not_users SET friendlist=(?) WHERE email=(?);''', (updated, str(email)))
+    cur.execute('''UPDATE not_users SET friendrequests = (?) WHERE email = (?);''', (updated, str(email)))
     con.commit()
     return True
 
@@ -178,8 +180,10 @@ def decrypt_file(encrypted_file, key):
     return decrypted_file
 
 
-def broadcast(message, target, current=''):
+def broadcast(message, target, current_name, current=''):
     if target == 'public':
+        cur.execute('''UPDATE not_buffer SET data = data || (?) WHERE target = public;''', message)
+        con.commit()
         for cl in public:
             if cl[0] is current:
                 key = cl[2]
@@ -187,6 +191,12 @@ def broadcast(message, target, current=''):
                 cl[0].send(encrypt_message(str(len(query)), key))
                 cl[0].send(query)
     else:
+        cur.execute('''SELECT data FROM not_buffer WHERE target = (?) AND source = (?);''', (target, current_name))
+        con.commit()
+        old_data = cur.fetchall()[0][0]
+        new_data = old_data + message + '\r\n'
+        cur.execute('''UPDATE not_buffer SET data = (?) WHERE target = (?) AND source = (?);''', (new_data, target, current_name))
+        con.commit()
         for cl in clients:
             if cl[0] is not current and cl[1] == target:
                 key = cl[2]
@@ -230,6 +240,15 @@ def handle(client, addr, session_key):
             message = decrypt_message(client.recv(int(buff)), session_key)
             print(message)
             split = message.split('<>')
+            if message == split:
+                print(str(addr) + ' disconnected')
+                clients.remove((client, v[1], session_key))
+                try:
+                    public.remove((client, v[1], session_key))
+                except:
+                    pass
+                client.close()
+                return
             if split[0] == 'üΩ¥':
                 ans = add_friend(split[1], split[2])
                 if ans:
@@ -240,7 +259,60 @@ def handle(client, addr, session_key):
                     query = encrypt_message('failed', session_key)
                     client.send(encrypt_message(str(len(query)), session_key))
                     client.send(query)
-            
+
+            elif split[0] == '§≡üΩ¥•¼': #  client-server signal for getting message history
+                if split[1] == 'public':
+                    cur.execute('''SELECT data FROM not_buffer WHERE targert = (?) AND source = (?);''', ('public', 'public'))
+                    con.commit()
+                else:
+                    cur.execute('''SELECT data FROM not_buffer WHERE targert = (?) AND source = (?);''', (split[1], split[2]))
+                    con.commit()
+                history = cur.fetchall()[0][0] 
+                query = encrypt_message(str(history), session_key)
+                client.send(encrypt_message(str(len(query)), session_key))
+                client.send(query)
+
+            elif split[0] == 'é': #  client-server signal for getting number of friend requests
+                cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[1],))
+                con.commit()
+                requests = cur.fetchall()[0][0].split('-')
+                query = encrypt_message(str(len(requests)), session_key)
+                client.send(encrypt_message(str(len(query)), session_key))
+                client.send(query)
+                
+
+            elif split[0] == '₧—é': #  client-server signal for getting friend requests
+                cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[1],))
+                con.commit()
+                requests = cur.fetchall()[0][0]
+                query = encrypt_message(requests, session_key)
+                client.send(encrypt_message(str(len(query)), session_key))
+                client.send(query)
+
+            elif split[0] == 'éè╣': #  client-sserver signal for handling friend requests
+                if split[1] == 'accept':
+                    cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[2],))
+                    con.commit()
+                    requests = cur.fetchall()[0][0]
+                    new = requests.replace(f'{split[3]}-', '')
+                    cur.execute('''UPDATE not_uesrs SET friendrequest = (?);''', (new,))
+                    con.commit()
+                    cur.execute('''SELECT friendlist FROM not_users WHERE name =(?);''', (split[3],))
+                    con.commit()
+                    friends = cur.fetchall()[0][0]
+                    new_f = friends + split[3] + '-'
+                    cur.execute('''UPDATE not_users SET friendlist = (?);''', (new_f,))
+                    con.commit()
+                    cur.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);''', (split[3], split[2], ''))
+
+                elif split[1] == 'reject':
+                    cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[2],))
+                    con.commit()
+                    requests = cur.fetchall()[0][0]
+                    new = requests.replace(f'{split[3]}-', '')
+                    cur.execute('''UPDATE not_uesrs SET friendrequest = (?);''', (new,))
+                    con.commit()
+
             elif split[0] == '™╣¶': #  client-server signal for removing a friend
                 remove_friend(split[1], split[2])
                 query = encrypt_message('removed', session_key)
@@ -287,17 +359,15 @@ def handle(client, addr, session_key):
                     client.send(query)
 
             elif split[0] == '◙°±©—₧ƒ': #  client-server signal for getting a file
-                temp = open('files\\temp', 'wb')
+                temp = open('files\\temp' + split[1]+split[2], 'rb+')
                 cur.execute('''SELECT data FROM not_files WHERE filename = (?) AND access = (?);''', (str(split[1]), str(split[2])))
                 con.commit()
                 data = cur.fetchall()[0][0]
+                print(data)
                 temp.write(data)
-                temp.close()
-                temp = open('files\\temp', 'rb')
                 while True:
                     data = temp.read(1024)
                     if data == b'':
-                        print('closing')
                         temp.close()
                         client.send(encrypt_message('-1', session_key))
                         break
@@ -315,7 +385,7 @@ def handle(client, addr, session_key):
                 query = encrypt_message('byebye±°<>', session_key) #  send encrypted signal for quitting
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
-                broadcast(split[2], split[1], client)
+                broadcast(split[2], split[1], v[1], client)
 
             elif split[0] == 't◙': # server signal for adding or removing from public room
                 if split[1] == 'public':
@@ -324,7 +394,7 @@ def handle(client, addr, session_key):
                     public.remove((client, v[1], session_key))
 
             else: #  if no signal was called then broadcast the message to the target
-                broadcast(split[2], split[1], client)
+                broadcast(split[2], split[1], v[1],client)
         except Exception as e:
             print(e)
             print(str(addr) + ' disconnected')
@@ -334,7 +404,7 @@ def handle(client, addr, session_key):
             except:
                 pass
             client.close()
-            broadcast(f'{v[1]} disconnected', client)
+            broadcast(f'{v[1]} disconnected', 'disconnect', v[1], client)
             break
 
 
