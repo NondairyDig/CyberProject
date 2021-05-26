@@ -520,12 +520,13 @@ class FriendsScreen(Screen):
                 if friend != '' and not check: #  if friend is not nothing and his duplicate not found
                     self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
                 check = False #  reset the duplicate checking variable
-        query = encrypt_message(f'é<>{user.email.decode()}', skey)
+        query = encrypt_message(f'é<>{user.nick}', skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
         number_of_requests = decrypt_message(client.recv(int(length)), skey)
         self.rq.text = f'Friend Requests ({str(number_of_requests)})'
+
 
     def start_private(self, button):
         global target
@@ -641,7 +642,7 @@ class Requests(Screen):
 
     def load(self): # a method for loading the friend requests
         self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
-        query = encrypt_message(f'₧—é<>{user.name}<>', skey) #  send the required signal to the server
+        query = encrypt_message(f'₧—é<>{user.nick}<>', skey) #  send the required signal to the server
         client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
         client.send(query) #  send the request to the server
         length = decrypt_message(client.recv(100), skey) #  get len of answer from server
@@ -661,12 +662,12 @@ class Requests(Screen):
     def accept_reject(self, b):
         ans = b.text.split(' ')
         if ans[0] == 'accept':
-            query = encrypt_message(f'éè╣<>accept<>{user.name}<>{ans[1]}', skey) #  send the required signal to the server
+            query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
 
         if ans[0] == 'reject':
-            query = encrypt_message(f'éè╣<>reject<>{user.name}<>{ans[1]}', skey) #  send the required signal to the server
+            query = encrypt_message(f'éè╣<>reject<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
 

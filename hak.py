@@ -1,4 +1,4 @@
-import sqlite3
+"""import sqlite3
 
 con = sqlite3.connect('notthesecretdatabase.db')
 curs = con.cursor()
@@ -20,4 +20,5 @@ con.commit()
 curs.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);''', ('public', 'public', ''))
 con.commit()
 
-con.close()
+con.close()"""
+
