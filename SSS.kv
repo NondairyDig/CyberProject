@@ -179,6 +179,11 @@
                 text: "Remove Friend"
                 font_size: (root.width**2 + root.height**2) / 17**4
                 on_release: root.remove_friend()
+            Button:
+                text: "Log Out"
+                font_size: (root.width**2 + root.height**2) / 17**4
+                on_release:
+                    root.logOut()
             Label:
                 font_size: (root.width**2 + root.height**2) / 17**4
                 text:"Click on a friend to send him a message:"
@@ -287,13 +292,7 @@
             font_size: 16
             on_release:
                 root.leave()
-        Button:
-            pos_hint: {"x":0.88, "y": 0.05}
-            size_hint: 0.1,0.1
-            text: "Log Out"
-            font_size: 16
-            on_release:
-                root.logOut()
+
         ScrollView:
             size_hint: 0.1, 0.4
             pos_hint: {"x":0.88, "top": 0.9}

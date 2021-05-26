@@ -370,18 +370,6 @@ class MainWindow(Screen):
             self.mtb.text = ''
             self.mtb.text = t
 
-    def logOut(self): #  log-out function
-        query = encrypt_message('▓quit<>' + target + '<>' + f'{user.nick} left the room', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        try:
-            delete = open('UserData.txt', 'wb') #  open "cookie" file
-            delete.write(b'') #  reset the file
-        except:
-            pass
-        os.system("python SSS.py") # restart application
-        sys.exit()
-
     def send_file(self, f, t):
         if f != '':
             p = str(f.split('/')[-1])
@@ -543,6 +531,14 @@ class FriendsScreen(Screen):
         sm.current = "requests"
         sm.current_screen.load()
 
+    def logOut(self): #  log-out function
+        try:
+            delete = open('UserData.txt', 'wb') #  open "cookie" file
+            delete.write(b'') #  reset the file
+        except:
+            pass
+        os.system("python SSS.py") # restart application
+        sys.exit()
 
 
 class AddFriend(Screen):
