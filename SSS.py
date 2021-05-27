@@ -534,14 +534,13 @@ class FriendsScreen(Screen):
         sm.current_screen.load()
 
     def logOut(self): #  log-out function
-        
+        client.close()
         try:
             delete = open('UserData.txt', 'wb') #  open "cookie" file
             delete.write(b'') #  reset the file
         except:
             pass
-        sys.stdout.flush()
-        os.execv(sys.argv[0], sys.argv) # restart application
+        exit() # quit application
 
 
 class AddFriend(Screen):
