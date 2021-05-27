@@ -19,8 +19,7 @@ from tkinter import Tk
 import os
 import sys
 
-
-"""udp, message history, notifications""" # to-do list
+"""udp, notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
 skey = b''  # global variable for session key
@@ -175,13 +174,16 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
 
 
 class LoginWindow(Screen):
-    email = ObjectProperty(None)
     password = ObjectProperty(None)
+    email = ObjectProperty(None)
     cb = ObjectProperty(None)
     btn = ObjectProperty(None)
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Connecting...'),
                   size_hint=(None, None), size=(250, 100))
+
+    def next_password(self):
+        self.password.focus = True
 
     def kook(self):
         try:
@@ -450,11 +452,11 @@ class MainWindow(Screen):
                 self.pop.open()
                 time.sleep(1)
                 self.pop.dismiss()
+                return
 
     def receive(self):
         r_t = threading.Thread(target=self.receive_main)
         r_t.start()
-
 
     def leave(self):
         l_t = threading.Thread(target=self.leave_main)
@@ -505,7 +507,7 @@ class FriendsScreen(Screen):
                     if friend == obj.text: #  check if button already exiest for friend
                         check = True # if found duplicate let the program know 
                         break #  end the inside loop for better runtime
-                if friend != '' and not check: #  if friend is not nothing and his duplicate not found
+                if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
                     self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
                 check = False #  reset the duplicate checking variable
         query = encrypt_message(f'é<>{user.nick}', skey)
@@ -518,7 +520,7 @@ class FriendsScreen(Screen):
 
     def start_private(self, button):
         global target
-        target = button.text
+        target = button.text.split('(')[0]
         sm.current = "main"
         sm.current_screen.load()
         sm.current_screen.receive()
@@ -532,13 +534,14 @@ class FriendsScreen(Screen):
         sm.current_screen.load()
 
     def logOut(self): #  log-out function
+        
         try:
             delete = open('UserData.txt', 'wb') #  open "cookie" file
             delete.write(b'') #  reset the file
         except:
             pass
-        os.system("python SSS.py") # restart application
-        sys.exit()
+        sys.stdout.flush()
+        os.execv(sys.argv[0], sys.argv) # restart application
 
 
 class AddFriend(Screen):
@@ -551,7 +554,7 @@ class AddFriend(Screen):
         global user
         self.pop.content.text = 'Adding Friend...'
         self.pop.open()
-        query = encrypt_message(f'üΩ¥<>{user.email.decode()}<>{self.friend.text}' , skey)
+        query = encrypt_message(f'üΩ¥<>{user.nick}<>{self.friend.text}' , skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
@@ -597,7 +600,7 @@ class RemoveFriend(Screen):
                     if friend == obj.text: #  check if button already exiest for friend
                         check = True # if found duplicate let the program know 
                         break #  end the inside loop for better runtime
-                if friend != '' and not check: #  if friend is not nothing and his duplicate not found
+                if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
                     self.bx.add_widget(Button(text=friend, on_release=self.remove_f)) #  add button to friend
                 check = False #  reset the duplicate checking variable
 
@@ -605,7 +608,8 @@ class RemoveFriend(Screen):
         global user #  get the global user variable
         self.pop.content.text = 'Removing friend...'
         self.pop.open()
-        query = encrypt_message(f'™╣¶<>{user.email.decode()}<>{b.text}' , skey)
+        friend = b.text.split('(')[0]
+        query = encrypt_message(f'™╣¶<>{user.email.decode()}<>{friend}' , skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
@@ -613,6 +617,10 @@ class RemoveFriend(Screen):
         if ans == 'removed':
             self.pop.content.text = 'Removed friend successfully'
             self.pop.open()
+            for obj in self.bx.children:
+                if obj.text == b.text:
+                    place = self.bx.children.index(obj)
+                    self.bx.children[place].remove()
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"
@@ -620,6 +628,10 @@ class RemoveFriend(Screen):
         else:
             self.pop.content.text = 'An error occurred'
             self.pop.open()
+            for obj in self.bx.children:
+                if obj.text == b.text:
+                    place = self.bx.children.index(obj)
+                    self.bx.children[place].remove()
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"
@@ -661,14 +673,21 @@ class Requests(Screen):
             query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
+            for obj in self.bx.children:
+                if obj.text == ans[1]:
+                    place = self.bx.children.index(obj)
+                    self.bx.children[place].remove()
+                    self.bx.children[place + 1].remove()
+                    self.bx.children[place + 2].remove()
+            sm.current = 'friends'
+            sm.current_screen.load()
 
         if ans[0] == 'reject':
             query = encrypt_message(f'éè╣<>reject<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
-
-        sm.current == 'friends'
-        sm.current_screen.load()
+            sm.current == 'friends'
+            sm.current_screen.load()
 
 
 class WindowManager(ScreenManager):

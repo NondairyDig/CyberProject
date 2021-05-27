@@ -124,27 +124,43 @@ def get_friends(email):
     return flist[0][0]
 
 
-def add_friend(email, friend):
+def add_friend(name, friend):
     cur.execute('''SELECT name FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
     ans = cur.fetchall()
+    cur.execute('''SELECT friendlist FROM not_users WHERE name = (?);''', (str()))
     if ans == []:
         return False
-    cur.execute('''SELECT friendrequests FROM not_users WHERE email = (?);''', (str(email),))
+    cur.execute('''SELECT friendrequests FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
-    current = cur.fetchall()[0][0]
-    updated = (str(current) + str(friend) + '-')
-    cur.execute('''UPDATE not_users SET friendrequests = (?) WHERE email = (?);''', (updated, str(email)))
+    current = cur.fetchall()
+    if current == []:
+        updated = (str(name) + '-')
+    else:
+        updated = (str(current[0][0]) + str(name) + '-')
+    cur.execute('''UPDATE not_users SET friendrequests = (?) WHERE name = (?);''', (updated, str(friend)))
     con.commit()
     return True
 
 
 def remove_friend(email, friend):
-    old_list = get_friends()
+    old_list = get_friends(email)
     if old_list == []:
         return
     new_list = old_list.replace(str(friend) + '-', '')
     cur.execute('''UPDATE not_users SET friendlist = (?) WHERE email=(?)''', (new_list, email))
+    con.commit()
+    
+    cur.execute('''SELECT friendlist FROM not_users WHERE name=(?);''', (friend,))
+    con.commit()
+    old_list = cur.fetchall()[0][0]
+    if old_list == []:
+        return
+    cur.execute('''SELECT name FROM not_users WHERE email = (?);''', (email,))
+    con.commit()
+    nickname = cur.fetchall()[0][0]
+    new_list = old_list.replace(nickname, '')
+    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE name=(?)''', (new_list, friend))
     con.commit()
 
 
@@ -238,7 +254,7 @@ def handle(client, addr, session_key):
             message = decrypt_message(client.recv(int(buff)), session_key)
             print(message)
             split = message.split('<>')
-            if message == split:
+            if message == split: #  prevent not compatable packet sending
                 print(str(addr) + ' disconnected')
                 clients.remove((client, v[1], session_key))
                 try:
@@ -290,24 +306,39 @@ def handle(client, addr, session_key):
                 if split[1] == 'accept':
                     cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[2],))
                     con.commit()
-                    requests = cur.fetchall()
+                    requests = cur.fetchall()[0][0]
                     new = requests.replace(f'{split[3]}-', '')
-                    cur.execute('''UPDATE not_uesrs SET friendrequest = (?);''', (new,))
+                    cur.execute('''UPDATE not_users SET friendrequests = (?) WHERE name = (?);''', (new, split[2]))
                     con.commit()
                     cur.execute('''SELECT friendlist FROM not_users WHERE name =(?);''', (split[3],))
                     con.commit()
-                    friends = cur.fetchall()[0][0]
-                    new_f = friends + split[3] + '-'
-                    cur.execute('''UPDATE not_users SET friendlist = (?);''', (new_f,))
+                    friends = cur.fetchall()
+                    if friends == []:
+                        new_f = split[2] + '-'
+                    else:
+                        new_f = friends[0][0] + split[2] + '-'
+                    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE name = (?);''', (new_f, split[3]))
+                    con.commit()
+                    cur.execute('''SELECT friendlist FROM not_users WHERE name =(?);''', (split[2],))
+                    con.commit()
+                    friends = cur.fetchall()
+                    if friends == []:
+                        new_f = split[3] + '-'
+                    else:
+                        new_f = friends[0][0] + split[3] + '-'
+                    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE name = (?);''', (new_f, split[2]))
                     con.commit()
                     cur.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);''', (split[3], split[2], ''))
+                    con.commit()
+                    cur.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);''', (split[2], split[3], ''))
+                    con.commit()
 
                 elif split[1] == 'reject':
                     cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[2],))
                     con.commit()
                     requests = cur.fetchall()[0][0]
                     new = requests.replace(f'{split[3]}-', '')
-                    cur.execute('''UPDATE not_uesrs SET friendrequest = (?);''', (new,))
+                    cur.execute('''UPDATE not_uesrs SET friendrequests = (?);''', (new,))
                     con.commit()
 
             elif split[0] == '™╣¶': #  client-server signal for removing a friend
@@ -317,7 +348,19 @@ def handle(client, addr, session_key):
                 client.send(query)
 
             elif split[0] == 'ø∞ö': #  client-server signal for getting friendlist
-                query = encrypt_message(get_friends(split[1]), session_key)
+                friendlist = get_friends(split[1])
+                if friendlist == []:
+                    pass
+                else:
+                    status = friendlist.split('-')
+                    friendlist = ''
+                    for f in status:
+                        for cl in clients:
+                            if f == cl[1]:
+                                friendlist += f + '(online)-'
+                            else:
+                                friendlist += f + '(offline)-'
+                query = encrypt_message(friendlist, session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
 

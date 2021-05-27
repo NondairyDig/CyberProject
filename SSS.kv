@@ -193,20 +193,24 @@
     FloatLayout:
         Label:
             text:"Enter friend's username: "
+            font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x":0.1, "top":0.5}
             size_hint: 0.3, 0.1
         TextInput:
             id:friend
             multiline: False
+            font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x": 0.45 , "top":0.5}
-            size_hint: 0.37, 0.08
+            size_hint: 0.3, 0.08
         Button:
             text: "Send Friend Request"
+            font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x": 0.76 , "top":0.5}
             size_hint: 0.3, 0.08
             on_release: root.add_friend()
         Button:
             text: "Go Back"
+            font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x": 0 , "top":1}
             size_hint: 0.08, 0.08
             on_release: root.goBack()
@@ -274,7 +278,9 @@
             multiline: False
             size_hint:0.82, 0.15
             pos_hint:{"x":0.05, "y": 0.05}
-            on_text_validate: root.write()
+            on_text_validate:
+                root.write()
+                focus: True
             on_text: root.limit()
 
         Button:
