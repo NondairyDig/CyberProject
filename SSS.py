@@ -26,7 +26,6 @@ user = '' #  global variable for user
 nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '127.0.0.1'  # server address
-special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def decrypt_message(encrypted_message, key): #  decrypt a message using Fernet module
     f = Fernet(key) #  initialize module in parameter
@@ -521,6 +520,9 @@ class FriendsScreen(Screen):
     def start_private(self, button):
         global target
         target = button.text.split('(')[0]
+        query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
         sm.current = "main"
         sm.current_screen.load()
         sm.current_screen.receive()

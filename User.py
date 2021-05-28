@@ -9,6 +9,10 @@ from mss import mss
 from hashlib import sha3_256
 import time
 from cryptography.fernet import *
+import pyaudio
+import numpy as np
+
+
 
 
 class User:
@@ -20,6 +24,7 @@ class User:
         self.pass_ = p.digest() #  password hash
         self.email = emailname.encode() # email
         self.client = user_socket
+        self.p = pyaudio.PyAudio()
         #self.f_list = fr_list
         #self.fast = email_socket_udp
 
@@ -102,6 +107,13 @@ class User:
 
     def update_f_list(self, friends):
         self.f_list = friends.split('-')
+    
+    def record(self, stream_rec):
+        buffer = stream_rec.read(1024)
+        self.client.send(buffer)
+    
+    def sound(self, stream, array):
+        stream.write(array)
 
     def recvall(self, length):
         #Retrieve all pixels

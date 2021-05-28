@@ -1,5 +1,6 @@
 import threading
 import socket
+from kivy.clock import ClockBaseInterrupt
 import rsa
 import time
 from cryptography.fernet import *
@@ -194,7 +195,7 @@ def decrypt_file(encrypted_file, key):
     return decrypted_file
 
 
-def broadcast(message, target, current_name, current=''):
+def broadcast(message, target, current_name, conv, current=''):
     if target == 'public':
         cur.execute('''UPDATE not_buffer SET data = data || (?) WHERE target = (?);''', (message + '\r\n', 'public'))
         con.commit()
@@ -211,10 +212,17 @@ def broadcast(message, target, current_name, current=''):
         new_data = old_data + message + '\r\n'
         cur.execute('''UPDATE not_buffer SET data = (?) WHERE target = (?) AND source = (?);''', (new_data, target, current_name))
         con.commit()
-        for cl in clients:
-            if cl[0] is not current and cl[1] == target:
-                key = cl[2]
-                cl[0].send(encrypt_message(message, key))
+        cur.execute('''UPDATE not_buffer SET data = (?) WHERE target = (?) AND source = (?);''', (new_data, current_name, target))
+        con.commit()
+        if conv != current_name:
+            pass
+        else:
+            for cl in clients:
+                if cl[0] is not current and cl[1] == target:
+                    key = cl[2]
+                    query = encrypt_message(message, key)
+                    cl[0].send(encrypt_message(str(len(query)), key))
+                    cl[0].send(query)
 
 
 def handle(client, addr, session_key):
@@ -246,7 +254,7 @@ def handle(client, addr, session_key):
                 return
     client.send(encrypt_message(str(v[2]), session_key))
     client.recv(1024)
-    clients.append((client, v[1], session_key))
+    clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
     while True:
         try:
@@ -256,7 +264,10 @@ def handle(client, addr, session_key):
             split = message.split('<>')
             if message == split: #  prevent not compatable packet sending
                 print(str(addr) + ' disconnected')
-                clients.remove((client, v[1], session_key))
+                for cl in clients:
+                    if cl[0] == client:
+                        clients.remove(cl)
+                        break
                 try:
                     public.remove((client, v[1], session_key))
                 except:
@@ -301,6 +312,11 @@ def handle(client, addr, session_key):
                 query = encrypt_message(requests, session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
+
+            elif split[0] == 'Ω¥•¼':
+                for cl in clients:
+                    if cl[1] == v[1]:
+                        cl[3] = split[1]
 
             elif split[0] == 'éè╣': #  client-sserver signal for handling friend requests
                 if split[1] == 'accept':
@@ -425,7 +441,7 @@ def handle(client, addr, session_key):
                 query = encrypt_message('byebye±°<>', session_key) #  send encrypted signal for quitting
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
-                broadcast(split[2], split[1], v[1], client)
+                broadcast(split[2], split[1], v[1], '', client)
 
             elif split[0] == 't◙': # server signal for adding or removing from public room
                 if split[1] == 'public':
@@ -434,11 +450,18 @@ def handle(client, addr, session_key):
                     public.remove((client, v[1], session_key))
 
             else: #  if no signal was called then broadcast the message to the target
-                broadcast(split[2], split[1], v[1],client)
+                for cl in clients:
+                    if cl[1] == split[1]:
+                        broadcast(split[2], split[1], v[1], cl[3], client)
+                        break
+                    else:
+                        broadcast(split[2], split[1], v[1], '', client)
         except Exception as e:
             print(e)
             print(str(addr) + ' disconnected')
-            clients.remove((client, v[1], session_key))
+            for cl in clients:
+                if cl[0] == client:
+                    clients.remove(cl)
             try:
                 public.remove((client, v[1], session_key))
             except:

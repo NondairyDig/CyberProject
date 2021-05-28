@@ -21,3 +21,17 @@ curs.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);'
 con.commit()
 
 con.close()"""
+
+from User import User
+import socket
+import pyaudio
+
+p = pyaudio.PyAudio()
+
+u = User('bruh@gmail.com', 'bruhbruh', socket.socket())
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=4000, output=True)
+stream_rec = p.open(format=pyaudio.paInt16, channels=1, rate=4000, input=True,
+                        frames_per_buffer=1024)
+
+while True:
+    u.sound(stream, u.record(stream_rec))
