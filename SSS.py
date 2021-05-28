@@ -17,7 +17,6 @@ from User import User
 from tkinter import filedialog
 from tkinter import Tk
 import os
-import sys
 
 """udp, notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
@@ -27,6 +26,7 @@ user = '' #  global variable for user
 nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '127.0.0.1'  # server address
+special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def decrypt_message(encrypted_message, key): #  decrypt a message using Fernet module
     f = Fernet(key) #  initialize module in parameter
