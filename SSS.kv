@@ -160,7 +160,10 @@
             row_force_default: True
             spacing: 0, 0
             padding: 0, 0
-
+            Button:
+                text: "Refresh Friends Status & Requests"
+                font_size: (root.width**2 + root.height**2) / 17**4
+                on_release: root.load()
             Button:
                 id:rq
                 text: "Friend Requests"
@@ -287,17 +290,24 @@
             id:up
             text: "Upload File"
             size_hint: 0.1, 0.1
-            pos_hint:{"x":0.88, "y": 0.15}
+            pos_hint:{"x":0.88, "y": 0.05}
             font_size: 16
             on_release:
                 root.sendFile()
         Button:
             text:"Leave Room"
-            pos_hint:{"x":0.88, "y": 0.25}
+            pos_hint:{"x":0.88, "y": 0.15}
             size_hint: 0.1,0.1
             font_size: 16
             on_release:
                 root.leave()
+        Button:
+            text:"Join Voice"
+            pos_hint:{"x":0.88, "y": 0.25}
+            size_hint: 0.1,0.1
+            font_size: 16
+            on_release:
+                root.voice()
 
         ScrollView:
             size_hint: 0.1, 0.4

@@ -1,4 +1,5 @@
 from tkinter.constants import FALSE, W
+from cv2 import data
 import kivy
 from kivy.core import text
 from kivy.uix.label import Label
@@ -17,6 +18,7 @@ from User import User
 from tkinter import filedialog
 from tkinter import Tk
 import os
+import pyaudio
 
 """udp, notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
@@ -26,6 +28,11 @@ user = '' #  global variable for user
 nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '127.0.0.1'  # server address
+special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+p = pyaudio.PyAudio()
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=4000, output=True)
+stream_rec = p.open(format=pyaudio.paInt16, channels=1, rate=4000, input=True,
+                        frames_per_buffer=1024)
 
 def decrypt_message(encrypted_message, key): #  decrypt a message using Fernet module
     f = Fernet(key) #  initialize module in parameter
@@ -320,6 +327,48 @@ class MainWindow(Screen):
             self.pop.dismiss()
             self.receive()
             return
+    
+    def send_voice(self):
+        time.sleep(1)
+        while True:
+            try:
+                special.send(stream_rec.read(1024))
+            except Exception as e:
+                print(e)
+                special.close()
+                self.pop.text = 'bye'
+                self.pop.open()
+                time.sleep(1)
+                self.pop.dismiss()
+                return
+
+    def voice_main(self):
+        vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+        try:
+            special.connect((host, 1441))
+            query = encrypt_message(f'con<>{target}<>{user.nick}', vkey)
+            special.send(encrypt_message(str(len(query)), vkey))
+            special.send(query)
+            print('sttt')
+            an = special.recv(5)
+            if an != 'start'.encode():
+                return
+            mv_t = threading.Thread(target=self.send_voice)
+            mv_t.start()
+            print('sttt')
+            while True:
+                stream.write(special.recv(2048))
+        except Exception as e:
+            print(e)
+            self.pop.text = 'Cant connect to voice'
+            self.pop.open()
+            time.sleep(1)
+            self.pop.dismiss()
+
+    def voice(self):
+        v_t = threading.Thread(target=self.voice_main)
+        v_t.start()
+        
 
     def load(self): # a function to load files
         global target
@@ -435,6 +484,7 @@ class MainWindow(Screen):
                 message = decrypt_message(client.recv(int(buff)), skey)
                 k = message.split('<>')
                 if k[0] == 'byebye±°':
+                    special.close()
                     sm.current = "friends"
                     sm.current_screen.load()
                     return
@@ -503,8 +553,9 @@ class FriendsScreen(Screen):
         if friendlist != ['']: #  check if friendlist is not empty
             for friend in friendlist: #  go over recived friendlist
                 for obj in self.bx.children: #  go over the existing widgets in layout
-                    if friend == obj.text: #  check if button already exiest for friend
-                        check = True # if found duplicate let the program know 
+                    if friend.split('(')[0] == obj.text.split('(')[0]:
+                        obj.text = friend #  check if button already exiest for friend
+                        check = True # if found duplicate let the program know
                         break #  end the inside loop for better runtime
                 if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
                     self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
@@ -712,3 +763,15 @@ class SSS(App):
 
 if __name__ == "__main__":
     SSS().run() #  run GUI
+    try:
+        global target
+        if target == 'public':
+            query = encrypt_message('t◙<>quit_pub', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+        query = encrypt_message('▓quit<>' + target + '<>' + f'{user.nick} left the room', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
+        exit()
+    except:
+        pass

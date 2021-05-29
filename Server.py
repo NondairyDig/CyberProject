@@ -1,12 +1,10 @@
 import threading
 import socket
-from kivy.clock import ClockBaseInterrupt
 import rsa
 import time
 from cryptography.fernet import *
 from hashlib import sha3_256
 import sqlite3
-
 
 host = '127.0.0.1'
 port = 5554
@@ -313,7 +311,7 @@ def handle(client, addr, session_key):
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
 
-            elif split[0] == 'Ω¥•¼':
+            elif split[0] == 'Ω¥•¼': # client-server signal for updating communication target
                 for cl in clients:
                     if cl[1] == v[1]:
                         cl[3] = split[1]
@@ -470,10 +468,51 @@ def handle(client, addr, session_key):
             break
 
 
+
+def voice(c):
+    vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+    buff = decrypt_message(c.recv(100), vkey)
+    message = decrypt_message(c.recv(int(buff)), vkey)
+    spl = message.split('<>')
+    nick = ''
+    for cl in clients:
+        if cl[1] == spl[2]:
+            nick = cl[1]
+    for cl in clients:
+        if cl[1] == spl[1] and cl[3] == nick:
+            tar = cl[0]
+            c.send('start'.encode())
+            print('started')
+    while True:
+        try:
+            data = c.recv(2048)
+        except Exception as e:
+            print(e)
+            c.close()
+        try:
+            tar.send(data)
+        except Exception as e:
+            print(e)
+            pass
+
+
+def voice_channel():
+    special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    special.bind((host, 1441))
+    special.listen(9)
+    while True:
+        c, addr = special.accept()
+
+        thread = threading.Thread(target=voice, args=(c,))
+        thread.start()
+
+
 def receive():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((host, 5554))
     s.listen(9)
+    v_t = threading.Thread(target=voice_channel)
+    v_t.start()
     while True:
         c, addr = s.accept()
         print(f'[{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())}] connected with {str(addr)}')
@@ -482,5 +521,6 @@ def receive():
 
         thread = threading.Thread(target=handle, args=(c, addr, session_key))
         thread.start()
+
 
 receive()
