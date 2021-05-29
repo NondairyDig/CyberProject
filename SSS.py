@@ -1,3 +1,4 @@
+from tkinter.constants import FALSE
 from kivy import Config
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
@@ -290,11 +291,12 @@ class MainWindow(Screen):
     mtb = ObjectProperty(None) #  main text browser (for writing)
     gx = ObjectProperty(None) # gridlayout of files
     up = ObjectProperty(None) # upload file button
+    vo = ObjectProperty(None) # join voice button
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Adding friend...'),
                   size_hint=(None, None), size=(250, 100))
 
-    def getfile(self, b):
+    def getfile(self, b): # a function to pick a directory to store the picked file
         Tk().withdraw() #  dismiss the main screen
         pathname = filedialog.askdirectory() #  get save path
         if pathname == '':
@@ -305,7 +307,7 @@ class MainWindow(Screen):
         f_t = threading.Thread(target=self.getfile_main, args=(b, pathname))
         f_t.start()
 
-    def getfile_main(self, b, d):
+    def getfile_main(self, b, d): # a function called to a thread to get/download a picked file to the server
         try:
             file = open(str(d) + '\\'+ str(b.text), 'ab')
             self.pop.content.text = "Getting file..."
@@ -334,7 +336,7 @@ class MainWindow(Screen):
             self.receive()
             return
     
-    def send_voice(self):
+    def send_voice(self): # a function to send voice recordings
         time.sleep(1)
         while True:
             try:
@@ -348,7 +350,7 @@ class MainWindow(Screen):
                 self.pop.dismiss()
                 return
 
-    def voice_main(self):
+    def voice_main(self): # main voice function
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
             special.connect((host, 1441))
@@ -401,7 +403,8 @@ class MainWindow(Screen):
         history = decrypt_message(client.recv(int(length)), skey)
         self.tb.text = history
 
-    def write(self):
+    def write(self): # a function that writes to the server a message to send to the target
+        self.mtb.focus = True
         if not str(self.mtb.text).isspace() and str(self.mtb.text) != '' and len(str(self.mtb.text)) < 1000 :
             message = f'{nickname}: {self.mtb.text}'
             t = self.tb.text
@@ -426,7 +429,7 @@ class MainWindow(Screen):
             self.mtb.text = ''
             self.mtb.text = t
 
-    def send_file(self, f, t):
+    def send_file(self, f, t): # a functions called to a thread to upload a file to the server
         if f != '':
             p = str(f.split('/')[-1])
             file = open(str(f), 'rb')
@@ -465,7 +468,7 @@ class MainWindow(Screen):
         else:
             return
 
-    def sendFile(self):
+    def sendFile(self): # a function to pick a file and start a thread to upload it
         Tk().withdraw() #  dismiss the main screen
         filename = filedialog.askopenfilename() #  get picked file path
         if filename != '':
@@ -483,7 +486,7 @@ class MainWindow(Screen):
             time.sleep(1)
             self.pop.dismiss()
 
-    def receive_main(self):
+    def receive_main(self): #  a function called to a thread to recieve message while in chat
         while True:
             try:
                 buff = decrypt_message(client.recv(100), skey)
@@ -510,6 +513,12 @@ class MainWindow(Screen):
                 return
 
     def receive(self):
+        if target == 'public':
+            self.vo.disabled = True
+            self.up.disabled = True
+        else:
+            self.vo.disabled = False
+            self.up.disabled = False
         r_t = threading.Thread(target=self.receive_main)
         r_t.start()
 

@@ -28,6 +28,7 @@
             TextInput:
                 pos_hint: {"x":0.5, "top":0.8}
                 size_hint: 0.4, 0.08
+                write_tab: False
                 id: username
                 multiline: False
                 font_size: (root.width**2 + root.height**2) / 17**4
@@ -41,6 +42,7 @@
             TextInput:
                 pos_hint: {"x":0.5, "top":0.67}
                 size_hint: 0.4, 0.08
+                write_tab: False
                 id: email
                 multiline: False
                 font_size: (root.width**2 + root.height**2) / 17**4
@@ -55,6 +57,7 @@
                 pos_hint: {"x":0.5, "top":0.8-0.13*2}
                 size_hint: 0.4, 0.08
                 id: password
+                write_tab: False
                 multiline: False
                 password: True
                 font_size: (root.width**2 + root.height**2) / 17**4
@@ -98,6 +101,7 @@
             id: email
             font_size: (root.width**2 + root.height**2) / 17**4
             multiline: False
+            write_tab: False
             pos_hint: {"x": 0.45 , "top":0.9}
             size_hint: 0.4, 0.08
 
@@ -112,6 +116,7 @@
             font_size: (root.width**2 + root.height**2) / 17**4
             multiline: False
             password: True
+            write_tab: False
             pos_hint: {"x": 0.45, "top":0.7}
             size_hint: 0.4, 0.08
 
@@ -162,33 +167,33 @@
             padding: 0, 0
             Button:
                 text: "Refresh Friends Status & Requests"
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 on_release: root.load()
             Button:
                 id:rq
                 text: "Friend Requests"
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 on_release: root.friend_requests()
             Button:
                 text: "Add Friend"
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 on_release:
                     root.add_friend_screen()
             Button:
                 text: "Public Room"
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 on_release: root.public() 
             Button:
                 text: "Remove Friend"
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 on_release: root.remove_friend()
             Button:
                 text: "Log Out and Exit"
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 on_release:
                     root.logOut()
             Label:
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 text:"Click on a friend to send him a message:"
 
 <AddFriend>:
@@ -265,6 +270,7 @@
     mtb: mtb
     gx:gx
     up:up
+    vo:vo
 
     FloatLayout:
         Label:
@@ -281,9 +287,9 @@
             multiline: False
             size_hint:0.82, 0.15
             pos_hint:{"x":0.05, "y": 0.05}
+            write_tab: False
             on_text_validate:
                 root.write()
-                focus: True
             on_text: root.limit()
 
         Button:
@@ -302,6 +308,7 @@
             on_release:
                 root.leave()
         Button:
+            id:vo
             text:"Join Voice"
             pos_hint:{"x":0.88, "y": 0.25}
             size_hint: 0.1,0.1
