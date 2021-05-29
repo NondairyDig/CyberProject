@@ -17,39 +17,39 @@
                 text: "Create an Account"
                 size_hint: 0.8, 0.2
                 pos_hint: {"x":0.1, "top":1}
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
             Label:
                 size_hint: 0.5,0.12
                 pos_hint: {"x":0, "top":0.8}
                 text: "Name: "
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.8}
                 size_hint: 0.4, 0.08
                 id: username
                 multiline: False
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
             Label:
                 size_hint: 0.5,0.12
                 pos_hint: {"x":0, "top":0.8-0.13}
                 text: "Email: "
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.67}
                 size_hint: 0.4, 0.08
                 id: email
                 multiline: False
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
             Label:
                 size_hint: 0.5,0.12
                 pos_hint: {"x":0, "top":0.8-0.13*2}
                 text: "Password: "
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.8-0.13*2}
@@ -57,12 +57,12 @@
                 id: password
                 multiline: False
                 password: True
-                font_size: (root.width**2 + root.height**2) / 14**4
+                font_size: (root.width**2 + root.height**2) / 17**4
 
         Button:
             pos_hint:{"x":0.3,"y":0.25}
             size_hint: 0.4, 0.1
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: (root.width**2 + root.height**2) / 18**4
             text: "Already have an Account? Log In"
             on_release:
                 root.manager.transition.direction = "right"
@@ -73,7 +73,7 @@
             pos_hint:{"x":0.2,"y":0.05}
             size_hint: 0.6, 0.15
             text: "Sign-up"
-            font_size: (root.width**2 + root.height**2) / 14**4
+            font_size: (root.width**2 + root.height**2) / 17**4
             on_release:
                 root.submit()
 
@@ -90,26 +90,26 @@
 
         Label:
             text:"Email: "
-            font_size: (root.width**2 + root.height**2) / 13**4
+            font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x":0.1, "top":0.9}
             size_hint: 0.35, 0.15
 
         TextInput:
             id: email
-            font_size: (root.width**2 + root.height**2) / 14**4
+            font_size: (root.width**2 + root.height**2) / 17**4
             multiline: False
             pos_hint: {"x": 0.45 , "top":0.9}
             size_hint: 0.4, 0.08
 
         Label:
             text:"Password: "
-            font_size: (root.width**2 + root.height**2) / 13**4
+            font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x":0.1, "top":0.7}
             size_hint: 0.35, 0.15
 
         TextInput:
             id: password
-            font_size: (root.width**2 + root.height**2) / 14**4
+            font_size: (root.width**2 + root.height**2) / 17**4
             multiline: False
             password: True
             pos_hint: {"x": 0.45, "top":0.7}
@@ -117,13 +117,13 @@
 
         Label:
             text: "Remember Me"
-            font_size: (root.width**2 + root.height**2) / 16**4
+            font_size: (root.width**2 + root.height**2) / 18**4
             pos_hint: {"x": 0.2, "top":0.5}
             size_hint: 0.45, 0.05
 
         CheckBox:
             id: cb
-            font_size: (root.width**2 + root.height**2) / 16**4
+            font_size: (root.width**2 + root.height**2) / 18**4
             pos_hint: {"x": 0.6, "top":0.5}
             size_hint: 0.05, 0.05
 
@@ -132,7 +132,7 @@
             id: btn
             pos_hint:{"x":0.2,"y":0.05}
             size_hint: 0.6, 0.2
-            font_size: (root.width**2 + root.height**2) / 13**4
+            font_size: (root.width**2 + root.height**2) / 17**4
             text: "Log-in"
             on_release:
                 root.loginBtn()
@@ -140,7 +140,7 @@
         Button:
             pos_hint:{"x":0.3,"y":0.3}
             size_hint: 0.4, 0.1
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: (root.width**2 + root.height**2) / 18**4
             text: "Don't have an Account? Create One"
             on_release:
                 root.manager.transition.direction = "left"
@@ -291,21 +291,21 @@
             text: "Upload File"
             size_hint: 0.1, 0.1
             pos_hint:{"x":0.88, "y": 0.05}
-            font_size: 16
+            font_size: 14
             on_release:
                 root.sendFile()
         Button:
             text:"Leave Room"
             pos_hint:{"x":0.88, "y": 0.15}
             size_hint: 0.1,0.1
-            font_size: 16
+            font_size: 14
             on_release:
                 root.leave()
         Button:
             text:"Join Voice"
             pos_hint:{"x":0.88, "y": 0.25}
             size_hint: 0.1,0.1
-            font_size: 16
+            font_size: 14
             on_release:
                 root.voice()
 

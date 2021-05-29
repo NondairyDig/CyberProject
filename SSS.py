@@ -1,7 +1,8 @@
-from tkinter.constants import FALSE, W
-from cv2 import data
-import kivy
-from kivy.core import text
+from kivy import Config
+Config.set('graphics', 'width', '1200')
+Config.set('graphics', 'height', '800')
+Config.set('graphics', 'minimum_width', '800')
+Config.set('graphics', 'minimum_height', '600')
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
@@ -19,6 +20,7 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import pyaudio
+
 
 """udp, notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
@@ -94,14 +96,14 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_email = self.email.text
         s_password = self.password.text
         self.pop.open()
-        if len(s_username) < 1 or s_username.isalnum() == False:
+        if len(s_username) < 1 or s_username.isalnum() == False or ' ' in s_username:
             invalidUsername()
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""
             return
 
-        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum():
+        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email:
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
@@ -212,7 +214,7 @@ class LoginWindow(Screen):
     def loginBtn(self):
         s_email = self.email.text
         s_password = self.password.text
-        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum():
+        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email:
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
@@ -756,6 +758,7 @@ for screen in screens:
 
 sm.current = "login" #  start from log-in window
 sm.current_screen.kook() #  check for automatic log-in with the kook() function
+
 
 class SSS(App):
     def build(self):
