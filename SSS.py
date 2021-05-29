@@ -3,6 +3,10 @@ Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
 Config.set('graphics', 'minimum_width', '800')
 Config.set('graphics', 'minimum_height', '600')
+Config.set('graphics', 'maximum_height', '2160')
+Config.set('graphics', 'maximum_width', '3840')
+Config.set('graphics', 'maxfps', 240)
+Config.set('kivy', 'default_font', ['Arial', 'files/arial.ttf'])
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
