@@ -385,7 +385,6 @@ class MainWindow(Screen):
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
         filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fileist from server and sort it
-        print('fil:  ' + str(filelist))
         check = False #  set a variable for checking duplicates
         if filelist != ['']: #  check if filelist is not empty
             for file in filelist: #  go over recived filelist
@@ -401,7 +400,6 @@ class MainWindow(Screen):
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
         history = decrypt_message(client.recv(int(length)), skey)
-        print('history : ' + history)
         self.tb.text = history
 
     def write(self): # a function that writes to the server a message to send to the target

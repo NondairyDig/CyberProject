@@ -14,6 +14,7 @@ buffer = b''
 files = {}
 con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
 cur = con.cursor()
+check = False
 
 
 def verify(c, addr): #  a function to verify the connection between the server and client (client socket, client address)
@@ -227,6 +228,7 @@ def broadcast(message, target, current_name, conv, current=''):
 
 
 def handle(client, addr, session_key):
+    global check
     m = client.recv(1).decode()
     if m == 'V':
         pass
@@ -262,6 +264,7 @@ def handle(client, addr, session_key):
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
     while True:
+        check = False
         try:
             buff = decrypt_message(client.recv(100), session_key)
             message = decrypt_message(client.recv(int(buff)), session_key)
@@ -462,10 +465,11 @@ def handle(client, addr, session_key):
                 for cl in clients:
                     if cl[1] == split[1]:
                         broadcast(split[2], split[1], v[1], cl[3], client)
+                        check = True
                         break
-                    else:
-                        broadcast(split[2], split[1], v[1], '', client)
-                        break
+                if not check:
+                    broadcast(split[2], split[1], v[1], '', client)
+
         except Exception as e:
             print(e)
             print(str(addr) + ' disconnected')
