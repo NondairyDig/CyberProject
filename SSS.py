@@ -270,8 +270,6 @@ class LoginWindow(Screen):
                 f = open('UserData.txt', 'wb')
                 f.write(encrypt_message(str('YEs'.encode()) + '  ' + str(e) + '  ' + str(p), file_key))
                 f.close()
-            friends = decrypt_message(client.recv(1024), skey)
-            user.update_f_list(friends)
             self.btn.disabled = False
             client.send('im ready'.encode())
             self.pop.dismiss()

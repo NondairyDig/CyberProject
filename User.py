@@ -16,7 +16,7 @@ import numpy as np
 
 
 class User:
-    def __init__(self, emailname, password, user_socket, nickname='', fr_list=''): #, email_socket_udp):
+    def __init__(self, emailname, password, user_socket, nickname=''): #, email_socket_udp):
 
         self.nick = str(nickname) #  nickname(emailname)
         p = sha3_256() # setting up the module
@@ -24,41 +24,33 @@ class User:
         self.pass_ = p.digest() #  password hash
         self.email = emailname.encode() # email
         self.client = user_socket
-        self.p = pyaudio.PyAudio()
-        #self.f_list = fr_list
-        #self.fast = email_socket_udp
 
     def login(self):
-        try:
-            self.client.send('L'.encode())
-            n = int(self.client.recv(154).decode())
-            e = int(self.client.recv(5).decode())
-            pub = rsa.key.PublicKey(n, e)
-            time.sleep(0.2)
-            self.client.send(rsa.encrypt(self.email, pub))
-            time.sleep(0.1)
-            self.client.send(rsa.encrypt(self.pass_, pub))
-            (pubu, priva) = rsa.newkeys(511)
-            self.client.send(str(pubu.n).encode())
-            self.client.send(str(pubu.e).encode())
-            time.sleep(0.2)
-            a = self.client.recv(64)
-            m = rsa.decrypt(a, priva)
-            time.sleep(0.2)
-            p_comp = sha3_256()
-            p_comp.update(self.pass_ + self.email)
-            if m != p_comp.digest() + b'auth':
-                self.client.close()
-                return False
-            else:
-                ses = self.client.recv(64)
-                sesd = rsa.decrypt(ses, priva)
-                fff = self.client.recv(64)
-                self.nick = rsa.decrypt(fff, priva).decode()
-                return sesd
-        except Exception as e:
-            print(e)
-            exit()
+        self.client.send('L'.encode())
+        n = int(self.client.recv(154).decode())
+        e = int(self.client.recv(5).decode())
+        pub = rsa.key.PublicKey(n, e)
+        self.client.send(rsa.encrypt(self.email, pub))
+        time.sleep(0.1)
+        self.client.send(rsa.encrypt(self.pass_, pub))
+        (pubu, priva) = rsa.newkeys(511)
+        self.client.send(str(pubu.n).encode())
+        self.client.send(str(pubu.e).encode())
+        time.sleep(0.2)
+        a = self.client.recv(64)
+        m = rsa.decrypt(a, priva)
+        time.sleep(0.2)
+        p_comp = sha3_256()
+        p_comp.update(self.pass_ + self.email)
+        if m != p_comp.digest() + b'auth':
+            self.client.close()
+            return False
+        else:
+            ses = self.client.recv(64)
+            sesd = rsa.decrypt(ses, priva)
+            fff = self.client.recv(64)
+            self.nick = rsa.decrypt(fff, priva).decode()
+            return sesd
 
     def signup(self):
         time.sleep(1)
@@ -81,11 +73,6 @@ class User:
         else:
             return True
 
-    def decrypt_message(self, encrypted_message, key):
-        f = Fernet(key)
-        decrypted_message = f.decrypt(encrypted_message)
-        return decrypted_message.decode()
-
     def verify(self):
         self.client.send('V'.encode())
         time.sleep(0.3)
@@ -104,16 +91,6 @@ class User:
         self.client.send(str(n).encode())
         self.client.send(str(e).encode())
         self.client.send(signaturev)
-
-    def update_f_list(self, friends):
-        self.f_list = friends.split('-')
-    
-    def record(self, stream_rec):
-        buffer = stream_rec.read(1024)
-        self.client.send(buffer)
-    
-    def sound(self, stream, array):
-        stream.write(array)
 
     def recvall(self, length):
         #Retrieve all pixels

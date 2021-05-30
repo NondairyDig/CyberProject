@@ -69,7 +69,7 @@ def login(c, sesk): #  a function to initialize the login process
     if auth: #  if the server authorized access
         log = rsa.encrypt((keke + b'auth'), publ) #  send password + salt to confirm login
         c.send(log) #  send
-        time.sleep(0.3) #  wait
+        time.sleep(0.2) #  wait
         secret_key = rsa.encrypt(sesk, publ) #  send session key to client
         c.send(secret_key) #  send
         time.sleep(0.2) # wait
@@ -224,18 +224,23 @@ def broadcast(message, target, current_name, conv, current=''):
 
 
 def handle(client, addr, session_key):
-    client.recv(1024)
+    m = client.recv(1).decode()
+    if m == 'V':
+        pass
+    else:
+        client.close()
+        return
     try:
         verify(client, addr)
     except:
         print('could not verify')
         return
     time.sleep(1)
-    m = client.recv(1024).decode()
+    m = client.recv(1).decode()
     if len(m) == 1:
         if m == 'S':
             if signup(client):
-                m = client.recv(1024).decode()
+                m = client.recv(1).decode()
                 if m == 'L':
                     v = login(client, session_key)
                 if v[0]:
@@ -250,7 +255,6 @@ def handle(client, addr, session_key):
                 pass
             else:
                 return
-    client.send(encrypt_message(str(v[2]), session_key))
     client.recv(1024)
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
