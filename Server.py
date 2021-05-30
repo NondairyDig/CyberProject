@@ -206,14 +206,17 @@ def broadcast(message, target, current_name, conv, current=''):
     else:
         cur.execute('''SELECT data FROM not_buffer WHERE target = (?) AND source = (?);''', (target, current_name))
         con.commit()
-        old_data = cur.fetchall()[0][0]
-        new_data = old_data + message + '\r\n'
+        old_data = cur.fetchall()
+        if old_data == []:
+            new_data = message + '\r\n'
+        else:
+            new_data = old_data[0][0] + message + '\r\n'
         cur.execute('''UPDATE not_buffer SET data = (?) WHERE target = (?) AND source = (?);''', (new_data, target, current_name))
         con.commit()
         cur.execute('''UPDATE not_buffer SET data = (?) WHERE target = (?) AND source = (?);''', (new_data, current_name, target))
         con.commit()
         if conv != current_name:
-            pass
+            return
         else:
             for cl in clients:
                 if cl[0] is not current and cl[1] == target:
@@ -294,10 +297,15 @@ def handle(client, addr, session_key):
                 else:
                     cur.execute('''SELECT data FROM not_buffer WHERE target = (?) AND source = (?);''', (split[1], split[2]))
                     con.commit()
-                history = cur.fetchall()[0][0] 
-                query = encrypt_message(str(history), session_key)
-                client.send(encrypt_message(str(len(query)), session_key))
-                client.send(query)
+                history = cur.fetchall()
+                if history == []:
+                    query = encrypt_message('', session_key)
+                    client.send(encrypt_message(str(len(query)), session_key))
+                    client.send(query)
+                else:
+                    query = encrypt_message(str(history[0][0]), session_key)
+                    client.send(encrypt_message(str(len(query)), session_key))
+                    client.send(query)
 
             elif split[0] == 'é': #  client-server signal for getting number of friend requests
                 cur.execute('''SELECT friendrequests FROM not_users WHERE name =(?);''', (split[1],))

@@ -7,6 +7,7 @@ Config.set('graphics', 'minimum_height', '600')
 Config.set('graphics', 'maximum_height', '2160')
 Config.set('graphics', 'maximum_width', '3840')
 Config.set('graphics', 'maxfps', 240)
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.set('kivy', 'default_font', ['Arial', 'files/arial.ttf'])
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
@@ -383,7 +384,8 @@ class MainWindow(Screen):
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
-        filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fillist from server and sort it
+        filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fileist from server and sort it
+        print('fil:  ' + str(filelist))
         check = False #  set a variable for checking duplicates
         if filelist != ['']: #  check if filelist is not empty
             for file in filelist: #  go over recived filelist
@@ -399,6 +401,7 @@ class MainWindow(Screen):
         client.send(query)
         length = decrypt_message(client.recv(100), skey)
         history = decrypt_message(client.recv(int(length)), skey)
+        print('history : ' + history)
         self.tb.text = history
 
     def write(self): # a function that writes to the server a message to send to the target
@@ -501,7 +504,7 @@ class MainWindow(Screen):
 
                 else:
                     t = self.tb.text
-                    self.tb.text = t + k[0]
+                    self.tb.text = t + k[0] + '\r\n'
 
             except Exception as e:
                 self.pop.content.text = 'An error occurred please wait or restart the app'
@@ -525,7 +528,11 @@ class MainWindow(Screen):
         l_t.start()
 
     def leave_main(self):
+        self.tb.text = ''
         global target
+        query = encrypt_message(f'Ω¥•¼<>', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
         if target == 'public':
             query = encrypt_message('t◙<>quit_pub', skey)
             client.send(encrypt_message(str(len(query)), skey))
@@ -533,6 +540,7 @@ class MainWindow(Screen):
         query = encrypt_message('▓quit<>', skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
+        target = ''
         return
 
 
@@ -546,6 +554,9 @@ class FriendsScreen(Screen):
     def public(self):
         global target
         target = 'public'
+        query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
         query = encrypt_message('t◙<>public', skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
