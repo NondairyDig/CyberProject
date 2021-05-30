@@ -532,7 +532,7 @@ class MainWindow(Screen):
             query = encrypt_message('t◙<>quit_pub', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
-        query = encrypt_message('▓quit<>' + target + '<>' + f'{user.nick} left the room', skey)
+        query = encrypt_message('▓quit<>', skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
         return

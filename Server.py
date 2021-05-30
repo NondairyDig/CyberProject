@@ -439,7 +439,6 @@ def handle(client, addr, session_key):
                 query = encrypt_message('byebye±°<>', session_key) #  send encrypted signal for quitting
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
-                broadcast(split[2], split[1], v[1], '', client)
 
             elif split[0] == 't◙': # server signal for adding or removing from public room
                 if split[1] == 'public':
