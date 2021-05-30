@@ -9,8 +9,6 @@ from mss import mss
 from hashlib import sha3_256
 import time
 from cryptography.fernet import *
-import pyaudio
-import numpy as np
 
 
 

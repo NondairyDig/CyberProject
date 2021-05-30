@@ -524,7 +524,7 @@ class MainWindow(Screen):
         l_t = threading.Thread(target=self.leave_main)
         l_t.start()
 
-    def leave(self):
+    def leave_main(self):
         global target
         if target == 'public':
             query = encrypt_message('t◙<>quit_pub', skey)
