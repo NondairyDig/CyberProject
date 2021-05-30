@@ -6,7 +6,7 @@ from cryptography.fernet import *
 from hashlib import sha3_256
 import sqlite3
 
-host = '127.0.0.1'
+host = '192.168.1.254'
 port = 5554
 clients = []
 public = []

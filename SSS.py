@@ -34,7 +34,7 @@ skey = b''  # global variable for session key
 user = '' #  global variable for user
 nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
-host = '127.0.0.1'  # server address
+host = '192.168.1.254'  # server address
 special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = pyaudio.PyAudio()
 stream = p.open(format=pyaudio.paInt16, channels=1, rate=4000, output=True)
