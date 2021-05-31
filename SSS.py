@@ -159,8 +159,6 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.pop.content.text = 'Logging In...'
             skey = user.login()
             if skey:
-                friends = decrypt_message(client.recv(1024), skey)
-                user.update_f_list(friends)
                 self.btn.disabled = False
                 self.pop.dismiss()
                 client.send('im ready'.encode())
@@ -679,6 +677,10 @@ class RemoveFriend(Screen):
                 check = False #  reset the duplicate checking variable
 
     def remove_f(self, b): #  is getting the screen and button
+        rf = threading.Thread(target=self.remove_f_main, args=(b,))
+        rf.start()
+    
+    def remove_f_main(self, b):
         global user #  get the global user variable
         self.pop.content.text = 'Removing friend...'
         self.pop.open()
@@ -691,10 +693,7 @@ class RemoveFriend(Screen):
         if ans == 'removed':
             self.pop.content.text = 'Removed friend successfully'
             self.pop.open()
-            for obj in self.bx.children:
-                if obj.text == b.text:
-                    place = self.bx.children.index(obj)
-                    self.bx.children[place].remove()
+            self.bx.children.remove(b)
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"

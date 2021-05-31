@@ -128,12 +128,12 @@ def add_friend(name, friend):
     cur.execute('''SELECT name FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
     ans = cur.fetchall()
-    cur.execute('''SELECT friendlist FROM not_users WHERE name = (?);''', (str()))
     if ans == []:
         return False
     cur.execute('''SELECT friendrequests FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
     current = cur.fetchall()
+    time.sleep(0.000001)
     if current == []:
         updated = (str(name) + '-')
     else:
@@ -148,7 +148,7 @@ def remove_friend(email, friend):
     if old_list == []:
         return
     new_list = old_list.replace(str(friend) + '-', '')
-    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE email=(?)''', (new_list, email))
+    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE email=(?);''', (new_list, email))
     con.commit()
     
     cur.execute('''SELECT friendlist FROM not_users WHERE name=(?);''', (friend,))
@@ -159,8 +159,12 @@ def remove_friend(email, friend):
     cur.execute('''SELECT name FROM not_users WHERE email = (?);''', (email,))
     con.commit()
     nickname = cur.fetchall()[0][0]
-    new_list = old_list.replace(nickname, '')
-    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE name=(?)''', (new_list, friend))
+    new_list = old_list.replace(nickname + '-', '')
+    cur.execute('''UPDATE not_users SET friendlist = (?) WHERE name=(?);''', (new_list, friend))
+    con.commit()
+    cur.execute('''DELETE FROM not_buffer WHERE target = (?) AND source=(?);''', (nickname, friend))
+    con.commit()
+    cur.execute('''DELETE FROM not_buffer WHERE target = (?) AND source=(?);''', (friend, nickname))
     con.commit()
 
 
@@ -242,24 +246,23 @@ def handle(client, addr, session_key):
         return
     time.sleep(1)
     m = client.recv(1).decode()
-    if len(m) == 1:
-        if m == 'S':
-            if signup(client):
-                m = client.recv(1).decode()
-                if m == 'L':
-                    v = login(client, session_key)
-                if v[0]:
-                    pass
-                else:
-                    return
-            else:
-                return
-        elif m == 'L':
-            v = login(client, session_key)
+    if m == 'S':
+        if signup(client):
+            m = client.recv(1).decode()
+            if m == 'L':
+                v = login(client, session_key)
             if v[0]:
                 pass
             else:
                 return
+        else:
+            return
+    elif m == 'L':
+        v = login(client, session_key)
+        if v[0]:
+            pass
+        else:
+            return
     client.recv(1024)
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
