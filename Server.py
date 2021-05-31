@@ -533,7 +533,6 @@ def voice(c):
                 if vo[2] == spl[2] and vo[1] == spl[1]:
                     tar = vo[0]
                     c.send('start'.encode())
-                    print('started')
                     main_vo_t = threading.Thread(target=recv_send, args=(c, tar))
                     main_vo_t.start()
                     ayo = True
@@ -541,7 +540,6 @@ def voice(c):
             c.close()
             return
         time.sleep(0.1)
-        print('bruh')
 
 
 def voice_channel():
