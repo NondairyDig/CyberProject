@@ -21,23 +21,3 @@ curs.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);'
 con.commit()
 
 con.close()"""
-
-from cv2 import VideoCapture
-import cv2
-
-p = VideoCapture(0)
-while(True):
-      
-    # Capture the video frame
-    # by frame
-    ret, frame = p.read()
-  
-    # Display the resulting frame
-    cv2.imshow('frame', frame)
-    print(len(frame))
-      
-    # the 'q' button is set as the
-    # quitting button you may use any
-    # desired button of your choice
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
