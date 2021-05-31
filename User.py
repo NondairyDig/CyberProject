@@ -41,8 +41,11 @@ class User:
         p_comp = sha3_256()
         p_comp.update(self.pass_ + self.email)
         if m != p_comp.digest() + b'auth':
-            self.client.close()
-            return False
+            if m == b'impost':
+                return 'imp'
+            else:
+                self.client.close()
+                return False
         else:
             ses = self.client.recv(64)
             sesd = rsa.decrypt(ses, priva)

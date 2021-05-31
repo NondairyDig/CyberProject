@@ -1,5 +1,6 @@
 import threading
 import socket
+from tkinter.constants import TRUE
 import rsa
 import time
 from cryptography.fernet import *
@@ -15,6 +16,7 @@ files = {}
 con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
 cur = con.cursor()
 check = False
+voice_cl = []
 
 
 def verify(c, addr): #  a function to verify the connection between the server and client (client socket, client address)
@@ -52,6 +54,9 @@ def logincheck(c): #  a function of checking the login (client socket)
     if res == []: #  if no match found
         return False, False, False, False #  return False 
     if res[0][0] == str(m1): #  if email matches database records
+        for cl in clients:
+            if cl[1] == res[0][2]:
+                return False, 'imp', False, False
         friend_list = res[0][1] #  if password matches database records
         return res[0][2], pf, True, friend_list # return username, password, Authurization status, friend list
     return False, False, False, False #  return False 
@@ -67,6 +72,10 @@ def login(c, sesk): #  a function to initialize the login process
     n = int(c.recv(154).decode()) #  get the public key part 
     e = int(c.recv(5).decode()) #  get the public key part
     publ = rsa.key.PublicKey(n, e) #  assemble the public key
+    if keke == 'imp':
+        log = rsa.encrypt((b'impost'), publ) #  send that log-in was not authorized
+        c.send(log) # send
+        return False, 'no' #  return login was not authorized with bool and string
     if auth: #  if the server authorized access
         log = rsa.encrypt((keke + b'auth'), publ) #  send password + salt to confirm login
         c.send(log) #  send
@@ -487,32 +496,38 @@ def handle(client, addr, session_key):
             break
 
 
+def recv_send(c, tar):
+    while True:
+            try:
+                data = c.recv(2048)
+            except Exception as e:
+                print(e)
+                c.close()
+            try:
+                tar.send(data)
+            except Exception as e:
+                print(e)
+                pass
 
 def voice(c):
+    global voice_cl
     vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
     buff = decrypt_message(c.recv(100), vkey)
     message = decrypt_message(c.recv(int(buff)), vkey)
     spl = message.split('<>')
-    nick = ''
-    for cl in clients:
-        if cl[1] == spl[2]:
-            nick = cl[1]
-    for cl in clients:
-        if cl[1] == spl[1] and cl[3] == nick:
-            tar = cl[0]
-            c.send('start'.encode())
-            print('started')
-    while True:
-        try:
-            data = c.recv(2048)
-        except Exception as e:
-            print(e)
-            c.close()
-        try:
-            tar.send(data)
-        except Exception as e:
-            print(e)
-            pass
+    voice_cl.append([c, spl[2], spl[1]])
+    ayo = False
+    while not ayo:
+        for vo in voice_cl:
+            if vo[2] == spl[2] and vo[1] == spl[1]:
+                tar = vo[0]
+                c.send('start'.encode())
+                print('started')
+                main_vo_t = threading.Thread(target=recv_send, args=(c, tar))
+                main_vo_t.start()
+                ayo = True
+        time.sleep(0.1)
+        print('bruh')
 
 
 def voice_channel():

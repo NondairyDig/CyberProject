@@ -108,7 +108,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.username.text = ""
             return
 
-        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email:
+        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email or s_email.count('@') > 1 or s_email.count('.') > 1:
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
@@ -157,12 +157,18 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         if (user.signup()):
             self.pop.content.text = 'Logging In...'
             skey = user.login()
-            if skey:
+            if skey and skey != 'imp':
                 self.btn.disabled = False
                 self.pop.dismiss()
                 client.send('im ready'.encode())
                 sm.current = 'friends'
                 sm.current_screen.load()
+                return
+            elif skey == 'imp':
+                self.btn.disabled = False
+                self.pop.content.text = 'Account Already Logged In'
+                time.sleep(1)
+                self.pop.dismiss()
                 return
             else:
                 self.btn.disabled = False
@@ -193,9 +199,6 @@ class LoginWindow(Screen):
                   content=Label(text='Connecting...'),
                   size_hint=(None, None), size=(250, 100))
 
-    def next_password(self):
-        self.password.focus = True
-
     def kook(self):
         try:
             cookie = open('UserData.txt', 'rb')
@@ -217,7 +220,7 @@ class LoginWindow(Screen):
     def loginBtn(self):
         s_email = self.email.text
         s_password = self.password.text
-        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email:
+        if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email or s_email.count('@') > 1 or s_email.count('.') > 1:
             invalidEmail()
             self.email.text = ""
             self.password.text = ""
@@ -263,7 +266,7 @@ class LoginWindow(Screen):
         skey = user.login()
         time.sleep(0.5)
         nickname = user.nick
-        if skey:
+        if skey and skey != 'imp':
             if self.cb.active:
                 f = open('UserData.txt', 'wb')
                 f.write(encrypt_message(str('YEs'.encode()) + '  ' + str(e) + '  ' + str(p), file_key))
@@ -273,6 +276,15 @@ class LoginWindow(Screen):
             self.pop.dismiss()
             sm.current = 'friends'
             sm.current_screen.load()
+            return
+        elif skey == 'imp':
+            self.btn.disabled = False
+            self.pop.content.text = 'Account Already Logged In'
+            time.sleep(1)
+            self.pop.dismiss()
+            f = open('UserData.txt', 'wb')
+            f.write(b'')
+            f.close()
             return
         else:
             self.btn.disabled = False
@@ -333,7 +345,7 @@ class MainWindow(Screen):
             return
     
     def send_voice(self): # a function to send voice recordings
-        time.sleep(1)
+        time.sleep(0.1)
         while True:
             try:
                 special.send(stream_rec.read(1024))
@@ -355,13 +367,17 @@ class MainWindow(Screen):
             special.send(query)
             print('sttt')
             an = special.recv(5)
+            print(an)
             if an != 'start'.encode():
                 return
+            time.sleep(0.1)
             mv_t = threading.Thread(target=self.send_voice)
             mv_t.start()
             print('sttt')
             while True:
-                stream.write(special.recv(2048))
+                data = special.recv(2048)
+                stream.write(data)
+                print(data)
         except Exception as e:
             print(e)
             self.pop.text = 'Cant connect to voice'
@@ -622,7 +638,7 @@ class AddFriend(Screen):
                   size_hint=(None, None), size=(250, 100))
 
     def add_friend(self):
-        af = threading.Thread(target=self.add_friend)
+        af = threading.Thread(target=self.add_friend_main)
         af.start()
     
     def add_friend_main(self):
