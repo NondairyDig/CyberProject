@@ -365,19 +365,15 @@ class MainWindow(Screen):
             query = encrypt_message(f'con<>{target}<>{user.nick}', vkey)
             special.send(encrypt_message(str(len(query)), vkey))
             special.send(query)
-            print('sttt')
             an = special.recv(5)
-            print(an)
             if an != 'start'.encode():
                 return
             time.sleep(0.1)
             mv_t = threading.Thread(target=self.send_voice)
             mv_t.start()
-            print('sttt')
             while True:
                 data = special.recv(2048)
                 stream.write(data)
-                print(data)
         except Exception as e:
             print(e)
             self.pop.text = 'Cant connect to voice'
