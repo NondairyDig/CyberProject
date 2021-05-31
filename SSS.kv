@@ -272,6 +272,8 @@
     up:up
     vo:vo
     fl:fl
+    vi:vi
+    jo:jo
 
     FloatLayout:
         id:fl
@@ -297,27 +299,42 @@
         Button:
             id:up
             text: "Upload File"
-            size_hint: 0.1, 0.1
+            size_hint: 0.1, 0.05
             pos_hint:{"x":0.88, "y": 0.05}
             font_size: 14
             on_release:
                 root.sendFile()
         Button:
             text:"Leave Room"
-            pos_hint:{"x":0.88, "y": 0.15}
-            size_hint: 0.1,0.1
+            pos_hint:{"x":0.88, "y": 0.11}
+            size_hint: 0.1,0.05
             font_size: 14
             on_release:
                 root.leave()
         Button:
             id:vo
             text:"Join Voice"
-            pos_hint:{"x":0.88, "y": 0.25}
-            size_hint: 0.1,0.1
+            pos_hint:{"x":0.88, "y": 0.18}
+            size_hint: 0.1,0.05
             font_size: 14
             on_release:
                 root.voice()
-
+        Button:
+            id:vi
+            text:"Host Video"
+            pos_hint:{"x":0.88, "y": 0.30}
+            size_hint: 0.1,0.05
+            font_size: 14
+            on_release:
+                root.video()
+        Button:
+            idjo
+            text:"Join Video"
+            pos_hint:{"x":0.88, "y": 0.36}
+            size_hint: 0.1,0.05
+            font_size: 14
+            on_release:
+                root.join_vid()
         ScrollView:
             size_hint: 0.1, 0.4
             pos_hint: {"x":0.88, "top": 0.9}

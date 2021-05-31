@@ -1,3 +1,4 @@
+from tkinter.constants import N
 from kivy import Config
 from kivy.core import text
 from kivy.uix.floatlayout import FloatLayout
@@ -27,6 +28,7 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import pyaudio
+import cv2
 
 
 """udp, notifications""" # to-do list
@@ -38,6 +40,7 @@ nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '192.168.1.254'  # server address
 special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = pyaudio.PyAudio()
 stream = p.open(format=pyaudio.paInt16, channels=1, rate=4000, output=True)
 stream_rec = p.open(format=pyaudio.paInt16, channels=1, rate=4000, input=True,
@@ -302,6 +305,7 @@ class MainWindow(Screen):
     gx = ObjectProperty(None) # gridlayout of files
     up = ObjectProperty(None) # upload file button
     vo = ObjectProperty(None) # join voice button
+    vi = ObjectProperty(None) # start stream button
     fl = ObjectProperty(None) # float layout of screen
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Adding friend...'),
@@ -377,14 +381,13 @@ class MainWindow(Screen):
             if an != 'start'.encode():
                 return
             time.sleep(0.1)
-            self.fl.add_widget(Button(text='Leave Voice', pos_hint={"x":0.88, "y": 0.35}, size_hint=(0.1, 0.1), on_release=self.leave_voice))
+            self.fl.add_widget(Button(text='Leave Voice', pos_hint={"x":0.88, "y": 0.24}, size_hint=(0.1, 0.05), on_release=self.leave_voice))
             mv_t = threading.Thread(target=self.send_voice, args=(vkey,))
             mv_t.start()
             while True:
                 data = decrypt_file(special.recv(2828), vkey)
                 stream.write(data)
-        except Exception as e:
-            print(e)
+        except Exception:
             special.close()
             self.pop.text = "Disconnected from voice"
             self.pop.open()
@@ -395,6 +398,93 @@ class MainWindow(Screen):
     def voice(self):
         v_t = threading.Thread(target=self.voice_main)
         v_t.start()
+
+    def send_video(self, vkey): # a function to send voice recordings
+        time.sleep(0.1)
+        feed = cv2.VideoCapture(0)
+        while True:
+            try:
+                cv2.imwrite('cache\\WebCamCacheS.jpg', feed.read()[1])
+                f = open('cache\\WebCamCacheS.jpg', 'rb')
+                query = encrypt_file(f.read(), vkey)
+                special_vid.send(encrypt_message(str(len(query)), vkey))
+                special_vid.send(query)
+                f.close()
+
+            except Exception as e:
+                print(e)
+                feed.release()
+                special_vid.close()
+                self.pop.text = "Disconnected from video"
+                self.pop.open()
+                self.pop.text = "Disconnected from video"
+                time.sleep(1)
+                self.pop.dismiss()
+                return
+
+    def join_vid(self):
+        vidd_t = threading.Thread(target=self.join_vid_main)
+        vidd_t.start()
+
+    def join_vid_main(self):
+        vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+        query = encrypt_message(f'con<>{target}<>{user.nick}<>recv', vkey)
+        special_vid.connect((host, 14655))
+        special_vid.send(encrypt_message(str(len(query)), vkey))
+        special_vid.send(query)
+        try:
+            while True:
+                    buff = decrypt_message(special_vid.recv(100), vkey)
+                    message = decrypt_file(special_vid.recv(int(buff)), vkey)
+                    print(buff)
+                    print(message)
+                    f = open('cache\\WebCamCacheC.jpg', 'wb')
+                    f.write(message)
+                    f.close()
+                    img = cv2.imread('cache\\WebCamCacheC.jpg')
+                    cv2.imshow('press q to exit', img)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+        except Exception as e:
+            print(e)
+            special_vid.close()
+            self.pop.text = "Disconnected from video"
+            self.pop.open()
+            self.pop.text = "Disconnected from video"
+            time.sleep(1)
+            self.pop.dismiss()
+            return
+
+    def leave_video(self, b):
+        special_vid.close()
+        self.fl.remove_widget(b)
+
+    def video_main(self): # main video function
+        vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+        try:
+            special_vid.connect((host, 14655))
+            query = encrypt_message(f'con<>{target}<>{user.nick}<>host', vkey)
+            special_vid.send(encrypt_message(str(len(query)), vkey))
+            special_vid.send(query)
+            an = special_vid.recv(5)
+            if an != 'start'.encode():
+                return
+            time.sleep(0.1)
+            self.fl.add_widget(Button(text='Stop Video', pos_hint={"x":0.88, "y": 0.42}, size_hint=(0.1, 0.05), on_release=self.leave_video))
+            mvid_t = threading.Thread(target=self.send_video, args=(vkey,))
+            mvid_t.start()
+        except Exception as e:
+            print(e)
+            special_vid.close()
+            self.pop.text = "Disconnected from video"
+            self.pop.open()
+            self.pop.text = "Disconnected from video"
+            time.sleep(1)
+            self.pop.dismiss()
+
+    def video(self): # start streaming camera thread
+        vi_t = threading.Thread(target=self.video_main)
+        vi_t.start()
         
 
     def load(self): # a function to load files
@@ -506,6 +596,7 @@ class MainWindow(Screen):
             self.pop.dismiss()
 
     def receive_main(self): #  a function called to a thread to recieve message while in chat
+        self.pop.text = "Disconnected from voice/video"
         while True:
             try:
                 buff = decrypt_message(client.recv(100), skey)
@@ -540,9 +631,11 @@ class MainWindow(Screen):
         if target == 'public':
             self.vo.disabled = True
             self.up.disabled = True
+            self.vi.disabled = True
         else:
             self.vo.disabled = False
             self.up.disabled = False
+            self.vi.disabled = False
         r_t = threading.Thread(target=self.receive_main)
         r_t.start()
 
