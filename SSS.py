@@ -1,4 +1,3 @@
-from tkinter.constants import FALSE
 from kivy import Config
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
@@ -623,6 +622,10 @@ class AddFriend(Screen):
                   size_hint=(None, None), size=(250, 100))
 
     def add_friend(self):
+        af = threading.Thread(target=self.add_friend)
+        af.start()
+    
+    def add_friend_main(self):
         global user
         self.pop.content.text = 'Adding Friend...'
         self.pop.open()
@@ -642,6 +645,7 @@ class AddFriend(Screen):
             self.pop.open()
             time.sleep(1)
             self.pop.dismiss()
+        return
     
     def goBack(self):
         sm.current = "friends"
@@ -709,6 +713,7 @@ class RemoveFriend(Screen):
             self.pop.dismiss()
             sm.current = "friends"
             sm.current_screen.load()
+        return
 
 
 class Requests(Screen):
@@ -740,7 +745,12 @@ class Requests(Screen):
                     self.bx.add_widget(Button(text=('accept ' + request), on_release=self.accept_reject)) #  add button to accept
                     self.bx.add_widget(Button(text=('reject ' + request), on_release=self.accept_reject)) #  add button to reject
                 check = False #  reset the duplicate checking variable
+
     def accept_reject(self, b):
+        ar = threading.Thread(target=self.accept_reject_main, args=(b,))
+        ar.start()
+
+    def accept_reject_main(self, b):
         ans = b.text.split(' ')
         if ans[0] == 'accept':
             query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
@@ -755,12 +765,19 @@ class Requests(Screen):
             sm.current = 'friends'
             sm.current_screen.load()
 
-        if ans[0] == 'reject':
+        elif ans[0] == 'reject':
             query = encrypt_message(f'éè╣<>reject<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
+            for obj in self.bx.children:
+                if obj.text == ans[1]:
+                    place = self.bx.children.index(obj)
+                    self.bx.children[place].remove()
+                    self.bx.children[place + 1].remove()
+                    self.bx.children[place + 2].remove()
             sm.current == 'friends'
             sm.current_screen.load()
+        return
 
 
 class WindowManager(ScreenManager):

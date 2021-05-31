@@ -202,19 +202,19 @@
         Label:
             text:"Enter friend's username: "
             font_size: (root.width**2 + root.height**2) / 17**4
-            pos_hint: {"x":0.1, "top":0.5}
-            size_hint: 0.3, 0.1
+            pos_hint: {"x":0.05, "top":0.5}
+            size_hint: 0.29, 0.1
         TextInput:
             id:friend
             multiline: False
             font_size: (root.width**2 + root.height**2) / 17**4
-            pos_hint: {"x": 0.45 , "top":0.5}
-            size_hint: 0.3, 0.08
+            pos_hint: {"x": 0.35 , "top":0.5}
+            size_hint: 0.29, 0.08
         Button:
             text: "Send Friend Request"
             font_size: (root.width**2 + root.height**2) / 17**4
-            pos_hint: {"x": 0.76 , "top":0.5}
-            size_hint: 0.3, 0.08
+            pos_hint: {"x": 0.65 , "top":0.5}
+            size_hint: 0.29, 0.08
             on_release: root.add_friend()
         Button:
             text: "Go Back"
