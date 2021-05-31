@@ -130,7 +130,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             s_t = threading.Thread(target=self.signup, args=(s_email, s_password, s_username))
             s_t.start()
     
-    def signup(self, e, p, n):
+    def signup(self, e, p, n): # signing up function
         self.btn.disabled = True
         self.pop.content.text = 'Connecting...'
         self.pop.open()
@@ -188,14 +188,14 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.pop.dismiss()
             return  # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
     
-    def login(self):
+    def login(self): # go to login screen
         self.email.text = ""
         self.password.text = ""
         self.username.text = ""
         sm.current = "login"
 
 
-class LoginWindow(Screen):
+class LoginWindow(Screen): 
     password = ObjectProperty(None)
     email = ObjectProperty(None)
     cb = ObjectProperty(None)
@@ -204,7 +204,7 @@ class LoginWindow(Screen):
                   content=Label(text='Connecting...'),
                   size_hint=(None, None), size=(250, 100))
 
-    def kook(self):
+    def kook(self): # check for "cookie"
         try:
             cookie = open('UserData.txt', 'rb')
             r = decrypt_message(cookie.read(), file_key).split('  ')
@@ -217,12 +217,12 @@ class LoginWindow(Screen):
         except:
             pass
 
-    def createBtn(self):
+    def createBtn(self): # go to sign up screen
         self.email.text = ""
         self.password.text = ""
         sm.current = "create"
     
-    def loginBtn(self):
+    def loginBtn(self): # cerdentials checking
         s_email = self.email.text
         s_password = self.password.text
         if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email or s_email.count('@') > 1 or s_email.count('.') > 1:
@@ -241,7 +241,7 @@ class LoginWindow(Screen):
             l_t = threading.Thread(target=self.login, args=(s_email, s_password,))
             l_t.start()
     
-    def login(self, e, p):
+    def login(self, e, p): # logging in function
         self.btn.disabled = True
         self.pop.content.text = 'Connecting...'
         self.pop.open()
@@ -307,6 +307,7 @@ class MainWindow(Screen):
     vo = ObjectProperty(None) # join voice button
     vi = ObjectProperty(None) # start stream button
     fl = ObjectProperty(None) # float layout of screen
+    jo = ObjectProperty(None) # host video button
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Adding friend...'),
                   size_hint=(None, None), size=(250, 100))
@@ -366,7 +367,7 @@ class MainWindow(Screen):
                 self.pop.dismiss()
                 return
 
-    def leave_voice(self, b):
+    def leave_voice(self, b): # leave the voice chat
         special.close()
         self.fl.remove_widget(b)
 
@@ -387,7 +388,7 @@ class MainWindow(Screen):
             while True:
                 data = decrypt_file(special.recv(2828), vkey)
                 stream.write(data)
-        except Exception:
+        except:
             special.close()
             self.pop.text = "Disconnected from voice"
             self.pop.open()
@@ -395,7 +396,7 @@ class MainWindow(Screen):
             time.sleep(1)
             self.pop.dismiss()
 
-    def voice(self):
+    def voice(self): # starting voice communication thread
         v_t = threading.Thread(target=self.voice_main)
         v_t.start()
 
@@ -411,8 +412,7 @@ class MainWindow(Screen):
                 special_vid.send(query)
                 f.close()
 
-            except Exception as e:
-                print(e)
+            except:
                 feed.release()
                 special_vid.close()
                 self.pop.text = "Disconnected from video"
@@ -422,11 +422,11 @@ class MainWindow(Screen):
                 self.pop.dismiss()
                 return
 
-    def join_vid(self):
+    def join_vid(self): # joining video thread
         vidd_t = threading.Thread(target=self.join_vid_main)
         vidd_t.start()
 
-    def join_vid_main(self):
+    def join_vid_main(self): # joining video stream of someone else
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         query = encrypt_message(f'con<>{target}<>{user.nick}<>recv', vkey)
         special_vid.connect((host, 14655))
@@ -445,8 +445,7 @@ class MainWindow(Screen):
                     cv2.imshow('press q to exit', img)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
-        except Exception as e:
-            print(e)
+        except:
             special_vid.close()
             self.pop.text = "Disconnected from video"
             self.pop.open()
@@ -455,7 +454,7 @@ class MainWindow(Screen):
             self.pop.dismiss()
             return
 
-    def leave_video(self, b):
+    def leave_video(self, b): # quit the video stream
         special_vid.close()
         self.fl.remove_widget(b)
 
@@ -627,23 +626,25 @@ class MainWindow(Screen):
                 sm.current_screen.load()
                 return
 
-    def receive(self):
+    def receive(self): # start receiving thread
         if target == 'public':
             self.vo.disabled = True
             self.up.disabled = True
             self.vi.disabled = True
+            self.jo.disabled = True
         else:
+            self.jo.disabled = False
             self.vo.disabled = False
             self.up.disabled = False
             self.vi.disabled = False
         r_t = threading.Thread(target=self.receive_main)
         r_t.start()
 
-    def leave(self):
+    def leave(self): # leave room thread(leave room button)
         l_t = threading.Thread(target=self.leave_main)
         l_t.start()
 
-    def leave_main(self):
+    def leave_main(self): # leave room function
         self.tb.text = ''
         global target
         query = encrypt_message(f'Ω¥•¼<>', skey)
@@ -664,10 +665,10 @@ class FriendsScreen(Screen):
     bx = ObjectProperty(None)
     rq = ObjectProperty(None)
 
-    def add_friend_screen(self):
+    def add_friend_screen(self): # go to add a friend screen
         sm.current = "addfriend"
 
-    def public(self):
+    def public(self): # join public room
         global target
         target = 'public'
         query = encrypt_message(f'Ω¥•¼<>{target}', skey)
@@ -682,7 +683,7 @@ class FriendsScreen(Screen):
         sm.current = "main"
         sm.current_screen.receive()
 
-    def load(self):
+    def load(self): # load list of friends
         self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
         query = encrypt_message(f'ø∞ö<>{user.email.decode()}', skey)
         client.send(encrypt_message(str(len(query)), skey))
@@ -708,7 +709,7 @@ class FriendsScreen(Screen):
         self.rq.text = f'Friend Requests ({str(number_of_requests)})'
 
 
-    def start_private(self, button):
+    def start_private(self, button): # start private communications
         global target
         target = button.text.split('(')[0]
         query = encrypt_message(f'Ω¥•¼<>{target}', skey)
@@ -718,11 +719,11 @@ class FriendsScreen(Screen):
         sm.current_screen.load()
         sm.current_screen.receive()
 
-    def remove_friend(self):
+    def remove_friend(self): # got to remove a friend screen
         sm.current = "remove"
         sm.current_screen.load()
     
-    def friend_requests(self):
+    def friend_requests(self): # go to friend requests screen
         sm.current = "requests"
         sm.current_screen.load()
 
@@ -742,11 +743,11 @@ class AddFriend(Screen):
                   content=Label(text='Adding friend...'),
                   size_hint=(None, None), size=(250, 100))
 
-    def add_friend(self):
+    def add_friend(self): # start adding a friend thread
         af = threading.Thread(target=self.add_friend_main)
         af.start()
     
-    def add_friend_main(self):
+    def add_friend_main(self): # adding a friend function
         global user
         self.pop.content.text = 'Adding Friend...'
         self.pop.open()
@@ -768,7 +769,7 @@ class AddFriend(Screen):
             self.pop.dismiss()
         return
     
-    def goBack(self):
+    def goBack(self): # go back to friends screen
         sm.current = "friends"
         sm.current_screen.load()
 
@@ -805,7 +806,7 @@ class RemoveFriend(Screen):
         rf = threading.Thread(target=self.remove_f_main, args=(b,))
         rf.start()
     
-    def remove_f_main(self, b):
+    def remove_f_main(self, b): # main removing friend function
         global user #  get the global user variable
         self.pop.content.text = 'Removing friend...'
         self.pop.open()
@@ -843,7 +844,7 @@ class Requests(Screen):
                   content=Label(text='Friend'),
                   size_hint=(None, None), size=(250, 100))
     
-    def back(self):
+    def back(self): # go back to friend screen
         sm.current = "friends"
         sm.current_screen.load()
 
@@ -867,11 +868,11 @@ class Requests(Screen):
                     self.bx.add_widget(Button(text=('reject ' + request), on_release=self.accept_reject)) #  add button to reject
                 check = False #  reset the duplicate checking variable
 
-    def accept_reject(self, b):
+    def accept_reject(self, b): # accept\reject thread
         ar = threading.Thread(target=self.accept_reject_main, args=(b,))
         ar.start()
 
-    def accept_reject_main(self, b):
+    def accept_reject_main(self, b): # main function to accept\reject friend request
         ans = b.text.split(' ')
         if ans[0] == 'accept':
             query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
