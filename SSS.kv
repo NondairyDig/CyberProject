@@ -65,7 +65,7 @@
         Button:
             pos_hint:{"x":0.3,"y":0.25}
             size_hint: 0.4, 0.1
-            font_size: (root.width**2 + root.height**2) / 18**4
+            font_size: (root.width**2 + root.height**2) / 19**4
             text: "Already have an Account? Log In"
             on_release:
                 root.manager.transition.direction = "right"
@@ -145,7 +145,7 @@
         Button:
             pos_hint:{"x":0.3,"y":0.3}
             size_hint: 0.4, 0.1
-            font_size: (root.width**2 + root.height**2) / 18**4
+            font_size: (root.width**2 + root.height**2) / 19**4
             text: "Don't have an Account? Create One"
             on_release:
                 root.manager.transition.direction = "left"
@@ -271,8 +271,10 @@
     gx:gx
     up:up
     vo:vo
+    fl:fl
 
     FloatLayout:
+        id:fl
         Label:
             text: "Welcome To the Secure Share System!"
             size_hint:0.1, 0.05

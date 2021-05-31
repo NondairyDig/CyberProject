@@ -499,15 +499,25 @@ def handle(client, addr, session_key):
 def recv_send(c, tar):
     while True:
             try:
-                data = c.recv(2048)
+                data = c.recv(2828)
             except Exception as e:
                 print(e)
                 c.close()
+                tar.close()
+                return
             try:
                 tar.send(data)
             except Exception as e:
                 print(e)
-                pass
+                c.close()
+                tar.close()
+                for vo in voice_cl:
+                    if vo[0] == c:
+                        voice_cl.remove(vo)
+                    if vo[0] == tar:
+                        voice_cl.remove(vo)
+                    
+                return
 
 def voice(c):
     global voice_cl
@@ -518,14 +528,18 @@ def voice(c):
     voice_cl.append([c, spl[2], spl[1]])
     ayo = False
     while not ayo:
-        for vo in voice_cl:
-            if vo[2] == spl[2] and vo[1] == spl[1]:
-                tar = vo[0]
-                c.send('start'.encode())
-                print('started')
-                main_vo_t = threading.Thread(target=recv_send, args=(c, tar))
-                main_vo_t.start()
-                ayo = True
+        try:
+            for vo in voice_cl:
+                if vo[2] == spl[2] and vo[1] == spl[1]:
+                    tar = vo[0]
+                    c.send('start'.encode())
+                    print('started')
+                    main_vo_t = threading.Thread(target=recv_send, args=(c, tar))
+                    main_vo_t.start()
+                    ayo = True
+        except:
+            c.close()
+            return
         time.sleep(0.1)
         print('bruh')
 

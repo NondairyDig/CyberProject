@@ -1,4 +1,6 @@
 from kivy import Config
+from kivy.core import text
+from kivy.uix.floatlayout import FloatLayout
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
 Config.set('graphics', 'minimum_width', '800')
@@ -300,6 +302,7 @@ class MainWindow(Screen):
     gx = ObjectProperty(None) # gridlayout of files
     up = ObjectProperty(None) # upload file button
     vo = ObjectProperty(None) # join voice button
+    fl = ObjectProperty(None) # float layout of screen
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Adding friend...'),
                   size_hint=(None, None), size=(250, 100))
@@ -344,19 +347,24 @@ class MainWindow(Screen):
             self.receive()
             return
     
-    def send_voice(self): # a function to send voice recordings
+    def send_voice(self, vkey): # a function to send voice recordings
         time.sleep(0.1)
         while True:
             try:
-                special.send(stream_rec.read(1024))
+                special.send(encrypt_file(stream_rec.read(1024), vkey))
             except Exception as e:
                 print(e)
                 special.close()
-                self.pop.text = 'bye'
+                self.pop.text = 'Disconnected from voice'
                 self.pop.open()
+                self.pop.text = "Disconnected from voice"
                 time.sleep(1)
                 self.pop.dismiss()
                 return
+
+    def leave_voice(self, b):
+        special.close()
+        self.fl.remove_widget(b)
 
     def voice_main(self): # main voice function
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
@@ -369,15 +377,18 @@ class MainWindow(Screen):
             if an != 'start'.encode():
                 return
             time.sleep(0.1)
-            mv_t = threading.Thread(target=self.send_voice)
+            self.fl.add_widget(Button(text='Leave Voice', pos_hint={"x":0.88, "y": 0.35}, size_hint=(0.1, 0.1), on_release=self.leave_voice))
+            mv_t = threading.Thread(target=self.send_voice, args=(vkey,))
             mv_t.start()
             while True:
-                data = special.recv(2048)
+                data = decrypt_file(special.recv(2828), vkey)
                 stream.write(data)
         except Exception as e:
             print(e)
-            self.pop.text = 'Cant connect to voice'
+            special.close()
+            self.pop.text = "Disconnected from voice"
             self.pop.open()
+            self.pop.text = "Disconnected from voice"
             time.sleep(1)
             self.pop.dismiss()
 
@@ -502,6 +513,9 @@ class MainWindow(Screen):
                 k = message.split('<>')
                 if k[0] == 'byebye±°':
                     special.close()
+                    query = encrypt_message(f'Ω¥•¼<>', skey)
+                    client.send(encrypt_message(str(len(query)), skey))
+                    client.send(query)
                     sm.current = "friends"
                     sm.current_screen.load()
                     return
@@ -518,6 +532,8 @@ class MainWindow(Screen):
                 self.pop.open()
                 time.sleep(1)
                 self.pop.dismiss()
+                sm.current = "friends"
+                sm.current_screen.load()
                 return
 
     def receive(self):
