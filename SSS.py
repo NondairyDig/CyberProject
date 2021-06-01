@@ -730,10 +730,13 @@ class RemoveFriend(Screen):
         if ans == 'removed':
             self.pop.content.text = 'Removed friend successfully'
             self.pop.open()
-            self.bx.children.remove(b)
+            self.bx.remove_widget(b)
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"
+            for obj in sm.current_screen.bx.children:
+                if obj.text.split('(')[0] == friend:
+                    sm.current_screen.bx.remove_widget(obj)
             sm.current_screen.load()
         else:
             self.pop.content.text = 'An error occurred'
