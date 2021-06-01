@@ -243,6 +243,7 @@ class LoginWindow(Screen):
         global client
         global skey
         global nickname
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             client.connect((host, 5554))
         except:
