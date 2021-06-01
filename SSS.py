@@ -38,7 +38,9 @@ user = '' #  global variable for user
 nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '192.168.1.254'  # server address
+global special 
 special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+global special_vid
 special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = pyaudio.PyAudio()
 stream = p.open(format=pyaudio.paInt16, channels=1, rate=24000, output=True)
@@ -342,8 +344,7 @@ class MainWindow(Screen):
             self.pop.dismiss()
             self.receive()
             return
-        except Exception as e:
-            print(e)
+        except:
             self.pop.content.text = 'An error occurd please wait or restart the app'
             self.pop.open()
             time.sleep(1)
@@ -358,7 +359,6 @@ class MainWindow(Screen):
                 special.send(encrypt_file(stream_rec.read(1024), skey))
             except:
                 self.vo.disabled = False
-                special.close()
                 self.pop.open()
                 self.pop.content.text = "Disconnected from voice"
                 time.sleep(1)
@@ -366,8 +366,10 @@ class MainWindow(Screen):
                 return
 
     def leave_voice(self, b): # leave the voice chat
-        self.vo.disabled = False
+        global special
         special.close()
+        special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.vo.disabled = False
         self.fl.remove_widget(b)
 
     def voice_main(self): # main voice function
@@ -393,11 +395,11 @@ class MainWindow(Screen):
                 stream.write(data)
         except:
             self.vo.disabled = False
-            special.close()
             self.pop.open()
             self.pop.content.text = "Disconnected from voice"
             time.sleep(1)
             self.pop.dismiss()
+        return
 
     def voice(self): # starting voice communication thread
         self.vo.disabled = True
@@ -421,7 +423,6 @@ class MainWindow(Screen):
             except:
                 break
         feed.release()
-        special_vid.close()
         self.pop.open()
         self.pop.content.text = "Disconnected from video"
         time.sleep(1)
@@ -437,6 +438,7 @@ class MainWindow(Screen):
         self.jo.disabled = True
         self.vi.disabled = True
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+        special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         special_vid.connect((host, 14655))
     
         query = encrypt_message(user.nick, vkey)
@@ -465,7 +467,6 @@ class MainWindow(Screen):
                     break
             self.jo.disabled = False
             self.vi.disabled = False
-            special_vid.close()
             self.pop.open()
             self.pop.content.text = "Disconnected from video"
             time.sleep(1)
@@ -475,7 +476,6 @@ class MainWindow(Screen):
             pass
         self.jo.disabled = False
         self.vi.disabled = False
-        special_vid.close()
         self.pop.open()
         self.pop.contenttext = "Disconnected from video"
         time.sleep(1)
@@ -483,7 +483,9 @@ class MainWindow(Screen):
         return
 
     def leave_video(self, b): # quit the video stream
+        global special_vid
         special_vid.close()
+        special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.fl.remove_widget(b)
         self.jo.disabled = False
         self.vi.disabled = False
@@ -491,6 +493,7 @@ class MainWindow(Screen):
     def video_main(self): # main video function
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
+            special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             special_vid.connect((host, 14655))
 
             query = encrypt_message(user.nick, vkey)
@@ -508,11 +511,9 @@ class MainWindow(Screen):
             self.fl.add_widget(Button(text='Stop Video', pos_hint={"x":0.88, "y": 0.42}, size_hint=(0.1, 0.05), on_release=self.leave_video))
             mvid_t = threading.Thread(target=self.send_video)
             mvid_t.start()
-        except Exception as e:
+        except:
             self.jo.disabled = False
             self.vi.disabled = False
-            print(e)
-            special_vid.close()
             self.pop.open()
             self.pop.content.text = "Disconnected from video"
             time.sleep(1)
@@ -635,6 +636,7 @@ class MainWindow(Screen):
             self.pop.dismiss()
 
     def receive_main(self): #  a function called to a thread to recieve message while in chat
+        global special, special_vid
         while True:
             try:
                 buff = decrypt_message(client.recv(100), skey)
@@ -642,6 +644,9 @@ class MainWindow(Screen):
                 k = message.split('<>')
                 if k[0] == 'byebye±°':
                     special.close()
+                    special_vid.close()
+                    special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     query = encrypt_message(f'Ω¥•¼<>', skey)
                     client.send(encrypt_message(str(len(query)), skey))
                     client.send(query)

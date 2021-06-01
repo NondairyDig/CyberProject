@@ -5,6 +5,7 @@ import time
 from cryptography.fernet import *
 from hashlib import sha3_256
 import sqlite3
+import os
 
 host = '192.168.1.254'
 port = 5554
@@ -246,7 +247,6 @@ def handle(client, addr, session_key):
     if m == 'V':
         pass
     else:
-        client.close()
         return
     try:
         verify(client, addr)
@@ -440,11 +440,10 @@ def handle(client, addr, session_key):
                     client.send(query)
 
             elif split[0] == '◙°±©—₧ƒ': #  client-server signal for getting a file
-                temp = open('files\\temp' + split[1]+split[2], 'rb+')
+                temp = open('files\\temp' + split[1]+split[2], 'wb+')
                 cur.execute('''SELECT data FROM not_files WHERE filename = (?) AND access = (?);''', (str(split[1]), str(split[2])))
                 con.commit()
                 data = cur.fetchall()[0][0]
-                print(data)
                 temp.write(data)
                 while True:
                     data = temp.read(1024)
@@ -456,6 +455,7 @@ def handle(client, addr, session_key):
                     client.send(encrypt_message(str(len(query)), session_key))
                     client.send(query)
                     time.sleep(0.0000000001)
+                os.remove('files\\temp' + split[1]+split[2])
 
             elif split[0] == '▓quitf': # signal for quiting temporerly
                 query = encrypt_message('filing±°<>', session_key)
@@ -502,15 +502,11 @@ def recv_send(c, tar, vkey, tarkey):
                 data = decrypt_file(c.recv(2828), vkey)
             except Exception as e:
                 print(e)
-                c.close()
-                tar.close()
                 return
             try:
                 tar.send(encrypt_file(data, tarkey))
             except Exception as e:
                 print(e)
-                c.close()
-                tar.close()
                 for vo in voice_cl:
                     if vo[0] == c:
                         voice_cl.remove(vo)
@@ -551,7 +547,6 @@ def voice(c):
                     main_vo_t.start()
                     ayo = True
         except:
-            c.close()
             return
         time.sleep(0.1)
 
@@ -572,16 +567,12 @@ def recv_send_vid(cli, targ, vkey, tarkey):
                 buff = decrypt_message(cli.recv(100), vkey)
                 message = decrypt_file(cli.recv(int(buff)), vkey)
             except:
-                cli.close()
-                targ.close()
                 return
             try:
                 to_send = encrypt_file(message, tarkey)
                 targ.send(encrypt_message(str(len(to_send)), tarkey))
                 targ.send(to_send)
             except:
-                targ.close()
-                cli.close()
                 return
 
 def video(cli):
@@ -595,7 +586,6 @@ def video(cli):
         if clie[1] == u_nick:
             vkey = clie[2]
     if vkey == '':
-        print('b')
         return
     buff = decrypt_message(cli.recv(100), vkey)
     message = decrypt_message(cli.recv(int(buff)), vkey)
@@ -604,7 +594,6 @@ def video(cli):
         if spl[1] == clie[1]:
             tarkey = clie[2]
     if tarkey == '':
-        print('a')
         return
     video_cl.append([cli, spl[2], spl[1], spl[3]])
     if spl[3] == 'recv':
@@ -620,7 +609,6 @@ def video(cli):
                     main_vid_t.start()
                     ayo = True
         except:
-            cli.close()
             return
         time.sleep(0.1)
 
