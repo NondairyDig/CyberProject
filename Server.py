@@ -552,19 +552,19 @@ def voice_channel():
         thread = threading.Thread(target=voice, args=(c,))
         thread.start()
 
-def recv_send_vid(cli, targ):
-    vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+def recv_send_vid(cli, targ, vkey, tarkey):
     while True:
             try:
                 buff = decrypt_message(cli.recv(100), vkey)
-                message = cli.recv(int(buff))
+                message = decrypt_file(cli.recv(int(buff)), vkey)
             except:
                 cli.close()
                 targ.close()
                 return
             try:
-                targ.send(encrypt_message(str(len(message)), vkey))
-                targ.send(message)
+                to_send = encrypt_file(message, tarkey)
+                targ.send(encrypt_message(str(len(to_send)), tarkey))
+                targ.send(to_send)
             except:
                 targ.close()
                 cli.close()
@@ -572,10 +572,26 @@ def recv_send_vid(cli, targ):
 
 def video(cli):
     global video_cl
-    vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+    vkey = ''
+    tarkey = ''
+    temp_key = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+    buff = decrypt_message(cli.recv(100), temp_key)
+    u_nick = decrypt_message(cli.recv(int(buff)), temp_key)
+    for clie in clients:
+        if clie[1] == u_nick:
+            vkey = clie[2]
+    if vkey == '':
+        print('b')
+        return
     buff = decrypt_message(cli.recv(100), vkey)
     message = decrypt_message(cli.recv(int(buff)), vkey)
     spl = message.split('<>')
+    for clie in clients:
+        if spl[1] == clie[1]:
+            tarkey = clie[2]
+    if tarkey == '':
+        print('a')
+        return
     video_cl.append([cli, spl[2], spl[1], spl[3]])
     if spl[3] == 'recv':
         return
@@ -586,7 +602,7 @@ def video(cli):
                 if vo[2] == spl[2] and vo[1] == spl[1] and vo[3] == 'recv':
                     targ = vo[0]
                     cli.send('start'.encode())
-                    main_vid_t = threading.Thread(target=recv_send_vid, args=(cli, targ))
+                    main_vid_t = threading.Thread(target=recv_send_vid, args=(cli, targ, vkey, tarkey))
                     main_vid_t.start()
                     ayo = True
         except:

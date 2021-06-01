@@ -42,8 +42,8 @@ host = '192.168.1.254'  # server address
 special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = pyaudio.PyAudio()
-stream = p.open(format=pyaudio.paInt16, channels=1, rate=4000, output=True)
-stream_rec = p.open(format=pyaudio.paInt16, channels=1, rate=4000, input=True,
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=24000, output=True)
+stream_rec = p.open(format=pyaudio.paInt16, channels=1, rate=24000, input=True,
                         frames_per_buffer=1024)
 
 def decrypt_message(encrypted_message, key): #  decrypt a message using Fernet module
@@ -400,27 +400,33 @@ class MainWindow(Screen):
         v_t = threading.Thread(target=self.voice_main)
         v_t.start()
 
-    def send_video(self, vkey): # a function to send voice recordings
+    def send_video(self): # a function to send voice recordings
         time.sleep(0.1)
         feed = cv2.VideoCapture(0)
         while True:
             try:
                 cv2.imwrite('cache\\WebCamCacheS.jpg', feed.read()[1])
+            except:
+                continue
+            try:
                 f = open('cache\\WebCamCacheS.jpg', 'rb')
-                query = encrypt_file(f.read(), vkey)
-                special_vid.send(encrypt_message(str(len(query)), vkey))
+                query = encrypt_file(f.read(), skey)
+                special_vid.send(encrypt_message(str(len(query)), skey))
                 special_vid.send(query)
                 f.close()
 
             except:
-                feed.release()
-                special_vid.close()
-                self.pop.text = "Disconnected from video"
-                self.pop.open()
-                self.pop.text = "Disconnected from video"
-                time.sleep(1)
-                self.pop.dismiss()
-                return
+                break
+        feed.release()
+        cv2.Dest
+        special_vid.close()
+        self.pop.text = "Disconnected from video"
+        self.pop.open()
+        self.pop.text = "Disconnected from video"
+        time.sleep(1)
+        self.pop.dismiss()
+        return
+            
 
     def join_vid(self): # joining video thread
         vidd_t = threading.Thread(target=self.join_vid_main)
@@ -428,23 +434,34 @@ class MainWindow(Screen):
 
     def join_vid_main(self): # joining video stream of someone else
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
-        query = encrypt_message(f'con<>{target}<>{user.nick}<>recv', vkey)
         special_vid.connect((host, 14655))
+    
+        query = encrypt_message(user.nick, vkey)
         special_vid.send(encrypt_message(str(len(query)), vkey))
         special_vid.send(query)
+
+        query = encrypt_message(f'con<>{target}<>{user.nick}<>recv', skey)
+        special_vid.send(encrypt_message(str(len(query)), skey))
+        special_vid.send(query)
+
         try:
             while True:
-                    buff = decrypt_message(special_vid.recv(100), vkey)
-                    message = decrypt_file(special_vid.recv(int(buff)), vkey)
-                    print(buff)
-                    print(message)
-                    f = open('cache\\WebCamCacheC.jpg', 'wb')
-                    f.write(message)
-                    f.close()
-                    img = cv2.imread('cache\\WebCamCacheC.jpg')
-                    cv2.imshow('press q to exit', img)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
+                buff = decrypt_message(special_vid.recv(100), skey)
+                message = decrypt_file(special_vid.recv(int(buff)), skey)
+                f = open('cache\\WebCamCacheC.jpg', 'wb')
+                f.write(message)
+                f.close()
+                img = cv2.imread('cache\\WebCamCacheC.jpg')
+                cv2.imshow('press q to exit', img)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            special_vid.close()
+            self.pop.text = "Disconnected from video"
+            self.pop.open()
+            self.pop.text = "Disconnected from video"
+            time.sleep(1)
+            self.pop.dismiss()
+            return
         except:
             special_vid.close()
             self.pop.text = "Disconnected from video"
@@ -462,15 +479,21 @@ class MainWindow(Screen):
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
             special_vid.connect((host, 14655))
-            query = encrypt_message(f'con<>{target}<>{user.nick}<>host', vkey)
+
+            query = encrypt_message(user.nick, vkey)
             special_vid.send(encrypt_message(str(len(query)), vkey))
             special_vid.send(query)
+
+            query = encrypt_message(f'con<>{target}<>{user.nick}<>host', skey)
+            special_vid.send(encrypt_message(str(len(query)), skey))
+            special_vid.send(query)
+
             an = special_vid.recv(5)
             if an != 'start'.encode():
                 return
             time.sleep(0.1)
             self.fl.add_widget(Button(text='Stop Video', pos_hint={"x":0.88, "y": 0.42}, size_hint=(0.1, 0.05), on_release=self.leave_video))
-            mvid_t = threading.Thread(target=self.send_video, args=(vkey,))
+            mvid_t = threading.Thread(target=self.send_video)
             mvid_t.start()
         except Exception as e:
             print(e)
