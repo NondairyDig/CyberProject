@@ -439,7 +439,7 @@ class MainWindow(Screen):
         self.vi.disabled = True
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        special_vid.connect((host, 14265))
+        special_vid.connect((host, 14655))
     
         query = encrypt_message(user.nick, vkey)
         special_vid.send(encrypt_message(str(len(query)), vkey))
@@ -494,7 +494,7 @@ class MainWindow(Screen):
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
             special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            special_vid.connect((host, 14265))
+            special_vid.connect((host, 14655))
 
             query = encrypt_message(user.nick, vkey)
             special_vid.send(encrypt_message(str(len(query)), vkey))
