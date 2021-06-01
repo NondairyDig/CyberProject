@@ -214,7 +214,7 @@ def broadcast(message, target, current_name, conv, current=''):
         cur.execute('''UPDATE not_buffer SET data = data || (?) WHERE target = (?);''', (message + '\r\n', 'public'))
         con.commit()
         for cl in public:
-            if cl[0] is current:
+            if cl[0] is not current:
                 key = cl[2]
                 query = encrypt_message(message, key)
                 cl[0].send(encrypt_message(str(len(query)), key))
