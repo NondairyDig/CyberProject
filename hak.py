@@ -21,3 +21,4 @@ curs.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);'
 con.commit()
 
 con.close()"""
+
