@@ -497,17 +497,17 @@ def handle(client, addr, session_key):
             break
 
 
-def recv_send(c, tar):
+def recv_send(c, tar, vkey, tarkey):
     while True:
             try:
-                data = c.recv(2828)
+                data = decrypt_file(c.recv(2828), vkey)
             except Exception as e:
                 print(e)
                 c.close()
                 tar.close()
                 return
             try:
-                tar.send(data)
+                tar.send(encrypt_file(data, tarkey))
             except Exception as e:
                 print(e)
                 c.close()
@@ -521,10 +521,25 @@ def recv_send(c, tar):
 
 def voice(c):
     global voice_cl
-    vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+    vkey = ''
+    temp_key = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
+    buff = decrypt_message(c.recv(100), temp_key)
+    u_nick = decrypt_message(c.recv(int(buff)), temp_key)
+    for clie in clients:
+        if clie[1] == u_nick:
+            vkey = clie[2]
+    if vkey == '':
+        print('b')
+        return
     buff = decrypt_message(c.recv(100), vkey)
     message = decrypt_message(c.recv(int(buff)), vkey)
     spl = message.split('<>')
+    for clie in clients:
+        if spl[1] == clie[1]:
+            tarkey = clie[2]
+    if tarkey == '':
+        print('a')
+        return
     voice_cl.append([c, spl[2], spl[1]])
     ayo = False
     while not ayo:
@@ -533,7 +548,7 @@ def voice(c):
                 if vo[2] == spl[2] and vo[1] == spl[1]:
                     tar = vo[0]
                     c.send('start'.encode())
-                    main_vo_t = threading.Thread(target=recv_send, args=(c, tar))
+                    main_vo_t = threading.Thread(target=recv_send, args=(c, tar, vkey, tarkey))
                     main_vo_t.start()
                     ayo = True
         except:

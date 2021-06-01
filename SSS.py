@@ -352,22 +352,22 @@ class MainWindow(Screen):
             self.receive()
             return
     
-    def send_voice(self, vkey): # a function to send voice recordings
+    def send_voice(self): # a function to send voice recordings
         time.sleep(0.1)
         while True:
             try:
-                special.send(encrypt_file(stream_rec.read(1024), vkey))
-            except Exception as e:
-                print(e)
+                special.send(encrypt_file(stream_rec.read(1024), skey))
+            except:
+                self.vo.disabled = False
                 special.close()
-                self.pop.text = 'Disconnected from voice'
                 self.pop.open()
-                self.pop.text = "Disconnected from voice"
+                self.pop.content.text = "Disconnected from voice"
                 time.sleep(1)
                 self.pop.dismiss()
                 return
 
     def leave_voice(self, b): # leave the voice chat
+        self.vo.disabled = False
         special.close()
         self.fl.remove_widget(b)
 
@@ -375,28 +375,33 @@ class MainWindow(Screen):
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
             special.connect((host, 61441))
-            query = encrypt_message(f'con<>{target}<>{user.nick}', vkey)
+            query = encrypt_message(str(user.nick), vkey)
             special.send(encrypt_message(str(len(query)), vkey))
+            special.send(query)
+
+            query = encrypt_message(f'con<>{target}<>{user.nick}', skey)
+            special.send(encrypt_message(str(len(query)), skey))
             special.send(query)
             an = special.recv(5)
             if an != 'start'.encode():
                 return
             time.sleep(0.1)
             self.fl.add_widget(Button(text='Leave Voice', pos_hint={"x":0.88, "y": 0.24}, size_hint=(0.1, 0.05), on_release=self.leave_voice))
-            mv_t = threading.Thread(target=self.send_voice, args=(vkey,))
+            mv_t = threading.Thread(target=self.send_voice)
             mv_t.start()
             while True:
-                data = decrypt_file(special.recv(2828), vkey)
+                data = decrypt_file(special.recv(2828), skey)
                 stream.write(data)
         except:
+            self.vo.disabled = False
             special.close()
-            self.pop.text = "Disconnected from voice"
             self.pop.open()
-            self.pop.text = "Disconnected from voice"
+            self.pop.content.text = "Disconnected from voice"
             time.sleep(1)
             self.pop.dismiss()
 
     def voice(self): # starting voice communication thread
+        self.vo.disabled = True
         v_t = threading.Thread(target=self.voice_main)
         v_t.start()
 
@@ -414,15 +419,12 @@ class MainWindow(Screen):
                 special_vid.send(encrypt_message(str(len(query)), skey))
                 special_vid.send(query)
                 f.close()
-
             except:
                 break
         feed.release()
-        cv2.Dest
         special_vid.close()
-        self.pop.text = "Disconnected from video"
         self.pop.open()
-        self.pop.text = "Disconnected from video"
+        self.pop.content.text = "Disconnected from video"
         time.sleep(1)
         self.pop.dismiss()
         return
@@ -433,6 +435,8 @@ class MainWindow(Screen):
         vidd_t.start()
 
     def join_vid_main(self): # joining video stream of someone else
+        self.jo.disabled = True
+        self.vi.disabled = True
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         special_vid.connect((host, 14655))
     
@@ -451,29 +455,39 @@ class MainWindow(Screen):
                 f = open('cache\\WebCamCacheC.jpg', 'wb')
                 f.write(message)
                 f.close()
-                img = cv2.imread('cache\\WebCamCacheC.jpg')
-                cv2.imshow('press q to exit', img)
+                try:
+                    img = cv2.imread('cache\\WebCamCacheC.jpg')
+                    cv2.imshow('press q to exit', img)
+                except:
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+                    continue
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
+            self.jo.disabled = False
+            self.vi.disabled = False
             special_vid.close()
-            self.pop.text = "Disconnected from video"
             self.pop.open()
-            self.pop.text = "Disconnected from video"
+            self.pop.content.text = "Disconnected from video"
             time.sleep(1)
             self.pop.dismiss()
             return
         except:
-            special_vid.close()
-            self.pop.text = "Disconnected from video"
-            self.pop.open()
-            self.pop.text = "Disconnected from video"
-            time.sleep(1)
-            self.pop.dismiss()
-            return
+            pass
+        self.jo.disabled = False
+        self.vi.disabled = False
+        special_vid.close()
+        self.pop.open()
+        self.pop.contenttext = "Disconnected from video"
+        time.sleep(1)
+        self.pop.dismiss()
+        return
 
     def leave_video(self, b): # quit the video stream
         special_vid.close()
         self.fl.remove_widget(b)
+        self.jo.disabled = False
+        self.vi.disabled = False
 
     def video_main(self): # main video function
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
@@ -496,15 +510,19 @@ class MainWindow(Screen):
             mvid_t = threading.Thread(target=self.send_video)
             mvid_t.start()
         except Exception as e:
+            self.jo.disabled = False
+            self.vi.disabled = False
             print(e)
             special_vid.close()
-            self.pop.text = "Disconnected from video"
             self.pop.open()
-            self.pop.text = "Disconnected from video"
+            self.pop.content.text = "Disconnected from video"
             time.sleep(1)
             self.pop.dismiss()
+            return
 
     def video(self): # start streaming camera thread
+        self.jo.disabled = True
+        self.vi.disabled = True
         vi_t = threading.Thread(target=self.video_main)
         vi_t.start()
         
@@ -618,7 +636,6 @@ class MainWindow(Screen):
             self.pop.dismiss()
 
     def receive_main(self): #  a function called to a thread to recieve message while in chat
-        self.pop.text = "Disconnected from voice/video"
         while True:
             try:
                 buff = decrypt_message(client.recv(100), skey)
