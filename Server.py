@@ -614,7 +614,7 @@ def video(cli):
 
 def video_channel():
     special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    special_vid.bind((host, 14655))
+    special_vid.bind((host, 14265))
     special_vid.listen(9)
     while True:
         c, addr = special_vid.accept()
