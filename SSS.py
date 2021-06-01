@@ -374,7 +374,7 @@ class MainWindow(Screen):
     def voice_main(self): # main voice function
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
-            special.connect((host, 1441))
+            special.connect((host, 61441))
             query = encrypt_message(f'con<>{target}<>{user.nick}', vkey)
             special.send(encrypt_message(str(len(query)), vkey))
             special.send(query)

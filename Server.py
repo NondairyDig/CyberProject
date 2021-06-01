@@ -544,7 +544,7 @@ def voice(c):
 
 def voice_channel():
     special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    special.bind((host, 1441))
+    special.bind((host, 61441))
     special.listen(9)
     while True:
         c, addr = special.accept()
