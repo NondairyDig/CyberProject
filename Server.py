@@ -446,6 +446,8 @@ def handle(client, addr, session_key):
                 con.commit()
                 data = cur.fetchall()[0][0]
                 temp.write(data)
+                temp.close()
+                temp = open('files\\temp' + split[1]+split[2], 'rb+')
                 while True:
                     data = temp.read(1024)
                     if data == b'':
