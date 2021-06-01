@@ -293,6 +293,7 @@ def handle(client, addr, session_key):
                     public.remove((client, v[1], session_key))
                 except:
                     pass
+                client.close()
                 return
             if split[0] == 'üΩ¥':
                 ans = add_friend(split[1], split[2])
@@ -492,6 +493,7 @@ def handle(client, addr, session_key):
                 public.remove((client, v[1], session_key))
             except:
                 pass
+            client.close()
             break
 
 
