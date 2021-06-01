@@ -119,8 +119,8 @@ def signup(c):
         return False
     p = sha3_256()
     p.update(m2 + m1)
-    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist, friendrequests, notifications)
-                VALUES (?, ?, ?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), '', '', ''))
+    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist, friendrequests)
+                VALUES (?, ?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), '', ''))
     con.commit()
     c.send(rsa.encrypt('succep'.encode(), pub))
     return True
