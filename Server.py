@@ -562,66 +562,6 @@ def voice_channel():
         thread = threading.Thread(target=voice, args=(c,))
         thread.start()
 
-def recv_send_vid(cli, targ, vkey, tarkey):
-    while True:
-            try:
-                buff = decrypt_message(cli.recv(100), vkey)
-                message = decrypt_file(cli.recv(int(buff)), vkey)
-            except:
-                return
-            try:
-                to_send = encrypt_file(message, tarkey)
-                targ.send(encrypt_message(str(len(to_send)), tarkey))
-                targ.send(to_send)
-            except:
-                return
-
-def video(cli):
-    global video_cl
-    vkey = ''
-    tarkey = ''
-    temp_key = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
-    buff = decrypt_message(cli.recv(100), temp_key)
-    u_nick = decrypt_message(cli.recv(int(buff)), temp_key)
-    for clie in clients:
-        if clie[1] == u_nick:
-            vkey = clie[2]
-    if vkey == '':
-        return
-    buff = decrypt_message(cli.recv(100), vkey)
-    message = decrypt_message(cli.recv(int(buff)), vkey)
-    spl = message.split('<>')
-    for clie in clients:
-        if spl[1] == clie[1]:
-            tarkey = clie[2]
-    if tarkey == '':
-        return
-    video_cl.append([cli, spl[2], spl[1], spl[3]])
-    if spl[3] == 'recv':
-        return
-    ayo = False
-    while not ayo:
-        try:
-            for vo in video_cl:
-                if vo[2] == spl[2] and vo[1] == spl[1] and vo[3] == 'recv':
-                    targ = vo[0]
-                    cli.send('start'.encode())
-                    main_vid_t = threading.Thread(target=recv_send_vid, args=(cli, targ, vkey, tarkey))
-                    main_vid_t.start()
-                    ayo = True
-        except:
-            return
-        time.sleep(0.1)
-
-def video_channel():
-    special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    special_vid.bind((host, 14655))
-    special_vid.listen(9)
-    while True:
-        c, addr = special_vid.accept()
-
-        thread = threading.Thread(target=video, args=(c,))
-        thread.start()
 
 def receive():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -629,8 +569,6 @@ def receive():
     s.listen(9)
     v_t = threading.Thread(target=voice_channel)
     v_t.start()
-    vid_t = threading.Thread(target=video_channel)
-    vid_t.start()
     while True:
         c, addr = s.accept()
         print(f'[{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())}] connected with {str(addr)}')

@@ -1,7 +1,4 @@
-from tkinter.constants import N
 from kivy import Config
-from kivy.core import text
-from kivy.uix.floatlayout import FloatLayout
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
 Config.set('graphics', 'minimum_width', '800')
@@ -28,10 +25,8 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import pyaudio
-import cv2
 
 
-"""udp, notifications""" # to-do list
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
 skey = b''  # global variable for session key
@@ -41,8 +36,6 @@ file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt dat
 host = '192.168.1.254'  # server address
 global special 
 special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-global special_vid
-special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = pyaudio.PyAudio()
 stream = p.open(format=pyaudio.paInt16, channels=1, rate=24000, output=True)
 stream_rec = p.open(format=pyaudio.paInt16, channels=1, rate=24000, input=True,
@@ -406,126 +399,6 @@ class MainWindow(Screen):
         self.vo.disabled = True
         v_t = threading.Thread(target=self.voice_main)
         v_t.start()
-
-    def send_video(self): # a function to send voice recordings
-        time.sleep(0.1)
-        feed = cv2.VideoCapture(0)
-        while True:
-            try:
-                cv2.imwrite('cache\\WebCamCacheS.jpg', feed.read()[1])
-            except:
-                continue
-            try:
-                f = open('cache\\WebCamCacheS.jpg', 'rb')
-                query = encrypt_file(f.read(), skey)
-                special_vid.send(encrypt_message(str(len(query)), skey))
-                special_vid.send(query)
-                f.close()
-            except:
-                break
-        feed.release()
-        self.pop.open()
-        self.pop.content.text = "Disconnected from video"
-        time.sleep(1)
-        self.pop.dismiss()
-        return
-            
-
-    def join_vid(self): # joining video thread
-        vidd_t = threading.Thread(target=self.join_vid_main)
-        vidd_t.start()
-
-    def join_vid_main(self): # joining video stream of someone else
-        self.jo.disabled = True
-        self.vi.disabled = True
-        vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
-        special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        special_vid.connect((host, 14655))
-    
-        query = encrypt_message(user.nick, vkey)
-        special_vid.send(encrypt_message(str(len(query)), vkey))
-        special_vid.send(query)
-
-        query = encrypt_message(f'con<>{target}<>{user.nick}<>recv', skey)
-        special_vid.send(encrypt_message(str(len(query)), skey))
-        special_vid.send(query)
-
-        try:
-            while True:
-                buff = decrypt_message(special_vid.recv(100), skey)
-                message = decrypt_file(special_vid.recv(int(buff)), skey)
-                f = open('cache\\WebCamCacheC.jpg', 'wb')
-                f.write(message)
-                f.close()
-                try:
-                    img = cv2.imread('cache\\WebCamCacheC.jpg')
-                    cv2.imshow('press q to exit', img)
-                except:
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
-                    continue
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-            self.jo.disabled = False
-            self.vi.disabled = False
-            self.pop.open()
-            self.pop.content.text = "Disconnected from video"
-            time.sleep(1)
-            self.pop.dismiss()
-            return
-        except:
-            pass
-        self.jo.disabled = False
-        self.vi.disabled = False
-        self.pop.open()
-        self.pop.contenttext = "Disconnected from video"
-        time.sleep(1)
-        self.pop.dismiss()
-        return
-
-    def leave_video(self, b): # quit the video stream
-        global special_vid
-        special_vid.close()
-        special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.fl.remove_widget(b)
-        self.jo.disabled = False
-        self.vi.disabled = False
-
-    def video_main(self): # main video function
-        vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
-        try:
-            special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            special_vid.connect((host, 14655))
-
-            query = encrypt_message(user.nick, vkey)
-            special_vid.send(encrypt_message(str(len(query)), vkey))
-            special_vid.send(query)
-
-            query = encrypt_message(f'con<>{target}<>{user.nick}<>host', skey)
-            special_vid.send(encrypt_message(str(len(query)), skey))
-            special_vid.send(query)
-
-            an = special_vid.recv(5)
-            if an != 'start'.encode():
-                return
-            time.sleep(0.1)
-            self.fl.add_widget(Button(text='Stop Video', pos_hint={"x":0.88, "y": 0.42}, size_hint=(0.1, 0.05), on_release=self.leave_video))
-            mvid_t = threading.Thread(target=self.send_video)
-            mvid_t.start()
-        except:
-            self.jo.disabled = False
-            self.vi.disabled = False
-            self.pop.open()
-            self.pop.content.text = "Disconnected from video"
-            time.sleep(1)
-            self.pop.dismiss()
-            return
-
-    def video(self): # start streaming camera thread
-        self.jo.disabled = True
-        self.vi.disabled = True
-        vi_t = threading.Thread(target=self.video_main)
-        vi_t.start()
         
 
     def load(self): # a function to load files
@@ -645,9 +518,7 @@ class MainWindow(Screen):
                 k = message.split('<>')
                 if k[0] == 'byebye±°':
                     special.close()
-                    special_vid.close()
                     special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    special_vid = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     query = encrypt_message(f'Ω¥•¼<>', skey)
                     client.send(encrypt_message(str(len(query)), skey))
                     client.send(query)
@@ -675,13 +546,9 @@ class MainWindow(Screen):
         if target == 'public':
             self.vo.disabled = True
             self.up.disabled = True
-            self.vi.disabled = True
-            self.jo.disabled = True
         else:
-            self.jo.disabled = False
             self.vo.disabled = False
             self.up.disabled = False
-            self.vi.disabled = False
         r_t = threading.Thread(target=self.receive_main)
         r_t.start()
 
