@@ -300,9 +300,7 @@ class MainWindow(Screen):
     gx = ObjectProperty(None) # gridlayout of files
     up = ObjectProperty(None) # upload file button
     vo = ObjectProperty(None) # join voice button
-    vi = ObjectProperty(None) # start stream button
     fl = ObjectProperty(None) # float layout of screen
-    jo = ObjectProperty(None) # host video button
     pop = Popup(title='Status',auto_dismiss= False,
                   content=Label(text='Adding friend...'),
                   size_hint=(None, None), size=(250, 100))
