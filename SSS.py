@@ -1,4 +1,3 @@
-from tkinter.constants import N
 from kivy import Config
 from kivy.core import text
 from kivy.uix.floatlayout import FloatLayout
@@ -978,6 +977,7 @@ if __name__ == "__main__":
         query = encrypt_message('▓quit<>' + target + '<>' + f'{user.nick} left the room', skey)
         client.send(encrypt_message(str(len(query)), skey))
         client.send(query)
+        client.close()
         exit()
     except:
         pass

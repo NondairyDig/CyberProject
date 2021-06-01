@@ -1,6 +1,5 @@
 import threading
 import socket
-from tkinter.constants import TRUE
 import rsa
 import time
 from cryptography.fernet import *
