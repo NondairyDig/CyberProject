@@ -26,7 +26,7 @@ from tkinter import Tk
 import os
 import pyaudio
 
-
+  # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
 skey = b''  # global variable for session key
@@ -181,7 +181,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.btn.disabled = False
             time.sleep(1)
             self.pop.dismiss()
-            return  # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
+            return
     
     def login(self): # go to login screen
         self.email.text = ""

@@ -1,6 +1,5 @@
 import threading
 import socket
-from tkinter.constants import TRUE
 import rsa
 import time
 from cryptography.fernet import *
@@ -45,8 +44,17 @@ def logincheck(c): #  a function of checking the login (client socket)
     u = c.recv(64) #  get encrypted email
     time.sleep(0.1) #  wait
     p = c.recv(64)  #  get encrypted password hash
-    m1 = rsa.decrypt(u, priv).decode() #  decrypt email
-    m2 = rsa.decrypt(p, priv) #  decrypt password hash
+    m = rsa.decrypt(u, priv).decode() #  decrypt email
+    m1 = ''
+    if m.split('/\<>')[0] == 'e':
+        m1 = m.split('/\<>')[1]
+    else:
+        return False, False, False, False
+    m = rsa.decrypt(p, priv) #  decrypt password hash
+    if m.split(b'/\<>')[0] == b'p':
+        m2 = m.split(b'/\<>')[1]
+    else:
+        return False, False, False, False
     p = sha3_256() #  initialize hashing module
     p.update(m2 + m1.encode()) #  insert password hash and salt
     pf = p.digest() #  hash
@@ -301,7 +309,6 @@ def handle(client, addr, session_key):
                     raise Exception('imp')
                 tries += 1
                 continue
-            print(message)
             split = message.split('<>')
             if message == split: #  prevent not compatable packet sending
                 print(str(addr) + ' disconnected')
@@ -505,8 +512,7 @@ def handle(client, addr, session_key):
                 if not check:
                     broadcast(split[2], split[1], v[1], '', client)
 
-        except Exception as e:
-            print(e)
+        except:
             print(str(addr) + ' disconnected')
             for cl in clients:
                 if cl[0] == client:
@@ -523,13 +529,11 @@ def recv_send(c, tar, vkey, tarkey):
     while True:
             try:
                 data = decrypt_file(c.recv(2828), vkey)
-            except Exception as e:
-                print(e)
+            except:
                 return
             try:
                 tar.send(encrypt_file(data, tarkey))
-            except Exception as e:
-                print(e)
+            except:
                 for vo in voice_cl:
                     if vo[0] == c:
                         voice_cl.remove(vo)
