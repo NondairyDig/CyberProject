@@ -1,5 +1,4 @@
 from kivy import Config
-from kivy.clock import triggered
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
 Config.set('graphics', 'minimum_width', '800')
@@ -70,27 +69,27 @@ def decrypt_file(encrypted_file, key): #  a function for decrypting a file( a me
 def invalidUsername(): #  a function of notifieng if the username entered is not valid
     pop = Popup(title='Invalid Username',
                   content=Label(text='username needs to contain only numbers and letters if empty, please enter username.'),
-                  size_hint=(None, None), size=(400, 400))
+                  size_hint=(None, None), size=(400, 200))
     pop.open()
 
 def invalidPassword(): #  a function of notifieng if the password entered is not valid
     pop = Popup(title='Invalid Password',
                   content=Label(text='Password needs to be at between 7 and 35 charachters long.'),
-                  size_hint=(None, None), size=(400, 400))
+                  size_hint=(None, None), size=(400, 200))
 
     pop.open()
 
 def invalidEmail(): #  a function of what to do if the email entered is not valid
     pop = Popup(title='Invalid Email',
                   content=Label(text='Please Re-enter Email'),
-                  size_hint=(None, None), size=(400, 400))
+                  size_hint=(None, None), size=(400, 200))
     pop.content.text = "bruh"
     pop.open()
 
 def error():
     pop = Popup(title='Error', auto_dismiss = False,
                   content=Label(text='Please Re-enter Email'),
-                  size_hint=(None, None), size=(400, 400))
+                  size_hint=(None, None), size=(500, 200))
     pop.content.text = 'There Was a problem connecting to server. try to refresh or restart'
     pop.open()
     time.sleep(1)
