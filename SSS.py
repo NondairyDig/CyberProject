@@ -355,13 +355,13 @@ class MainWindow(Screen):
                 data = decrypt_file(client.recv(int(buff)), skey)
                 file.write(data)
             self.pop.content.text = "File Received"
+            file.close()
             time.sleep(1)
             self.pop.dismiss()
             self.load()
             query = encrypt_message(f'Ω¥•¼<>{target}', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
-            file.close()
             self.receive()
             return
         except:
@@ -374,7 +374,6 @@ class MainWindow(Screen):
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
             self.receive()
-            file.close()
             return
     
     def send_voice(self): # a function to send voice recordings
