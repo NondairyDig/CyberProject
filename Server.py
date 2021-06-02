@@ -304,7 +304,9 @@ def handle(client, addr, session_key):
             try:
                 buff = decrypt_message(client.recv(100), session_key)
                 message = decrypt_message(client.recv(int(buff)), session_key)
-            except:
+                print(message)
+            except Exception as e:
+                print(str(e) + 'f ')
                 if tries == 3:
                     raise Exception('imp')
                 tries += 1
@@ -434,14 +436,17 @@ def handle(client, addr, session_key):
                 client.send(query)
 
             elif split[0] == 'ƒ₧—©±°◙': #  client-server signal for uploading a file to the server
-                cur.execute('''SELECT id, name FROM not_users WHERE name = (?) ;''', (v[1],))
+                cur.execute('''SELECT name FROM not_users WHERE name = (?) ;''', (v[1],))
                 con.commit()
                 ans = cur.fetchall()[0][0]
-                cur.execute('''INSERT INTO not_files (owner_id, filename, access, owner) VALUES (?, ?, ?, ?);''' , (ans[0], split[1], split[2], ans[1]))
+                print(ans)
+                cur.execute('''INSERT INTO not_files (filename, access, owner) VALUES (?, ?, ?);''' , (split[1], split[2], ans))
                 con.commit()
+                print('2')
                 data = b''
                 while True:
                     buff = decrypt_message(client.recv(100), session_key)
+                    print(buff)
                     if buff == '-1':
                         break
                     data += decrypt_file(client.recv(int(buff)), session_key)
@@ -512,7 +517,8 @@ def handle(client, addr, session_key):
                 if not check:
                     broadcast(split[2], split[1], v[1], '', client)
 
-        except:
+        except Exception as e:
+            print(e)
             print(str(addr) + ' disconnected')
             for cl in clients:
                 if cl[0] == client:
