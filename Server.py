@@ -139,11 +139,24 @@ def add_friend(name, friend):
     cur.execute('''SELECT name FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
     ans = cur.fetchall()
-    if ans == []:
+    cur.execute('''SELECT friendlist FROM not_users WHERE name = (?);''', (str(name),))
+    con.commit()
+    already = cur.fetchall()
+    if already == []:
+        pass
+    else:
+        if str(friend) in str(already[0][0]):
+            return False
+    if ans == [] or name == friend:
         return False
     cur.execute('''SELECT friendrequests FROM not_users WHERE name = (?);''', (str(friend),))
     con.commit()
     current = cur.fetchall()
+    if current ==[]:
+        pass
+    else:
+        if name in current[0][0]:
+            return False
     time.sleep(0.000001)
     if current == []:
         updated = (str(name) + '-')
@@ -380,7 +393,7 @@ def handle(client, addr, session_key):
                     con.commit()
                     requests = cur.fetchall()[0][0]
                     new = requests.replace(f'{split[3]}-', '')
-                    cur.execute('''UPDATE not_uesrs SET friendrequests = (?);''', (new,))
+                    cur.execute('''UPDATE not_users SET friendrequests = (?);''', (new,))
                     con.commit()
 
             elif split[0] == '™╣¶': #  client-server signal for removing a friend
@@ -409,7 +422,7 @@ def handle(client, addr, session_key):
             elif split[0] == 'ƒ₧—©±°◙': #  client-server signal for uploading a file to the server
                 cur.execute('''SELECT id, name FROM not_users WHERE name = (?) ;''', (v[1],))
                 con.commit()
-                ans = cur.fetchall()[0]
+                ans = cur.fetchall()[0][0]
                 cur.execute('''INSERT INTO not_files (owner_id, filename, access, owner) VALUES (?, ?, ?, ?);''' , (ans[0], split[1], split[2], ans[1]))
                 con.commit()
                 data = b''

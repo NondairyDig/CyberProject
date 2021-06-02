@@ -595,29 +595,38 @@ class FriendsScreen(Screen):
         sm.current_screen.receive()
 
     def load(self): # load list of friends
-        self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
-        query = encrypt_message(f'ø∞ö<>{user.email.decode()}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        length = decrypt_message(client.recv(100), skey)
-        friendlist = sorted(decrypt_message(client.recv(int(length)), skey).split('-'), key=str.lower) #  get friendlist string from server make it a list and sort it
-        check = False #  set a variable for checking duplicates
-        if friendlist != ['']: #  check if friendlist is not empty
-            for friend in friendlist: #  go over recived friendlist
-                for obj in self.bx.children: #  go over the existing widgets in layout
-                    if friend.split('(')[0] == obj.text.split('(')[0]:
-                        obj.text = friend #  check if button already exiest for friend
-                        check = True # if found duplicate let the program know
-                        break #  end the inside loop for better runtime
-                if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
-                    self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
-                check = False #  reset the duplicate checking variable
-        query = encrypt_message(f'é<>{user.nick}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        length = decrypt_message(client.recv(100), skey)
-        number_of_requests = decrypt_message(client.recv(int(length)), skey)
-        self.rq.text = f'Friend Requests ({str(number_of_requests)})'
+        try:
+            self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
+            query = encrypt_message(f'ø∞ö<>{user.email.decode()}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            length = decrypt_message(client.recv(100), skey)
+            friendlist = sorted(decrypt_message(client.recv(int(length)), skey).split('-'), key=str.lower) #  get friendlist string from server make it a list and sort it
+            check = False #  set a variable for checking duplicates
+            for ob in self.bx.children:
+                if '(offline)' in ob.text or '(online)' in ob.text:
+                    self.bx.remove_widget(ob)
+            if friendlist != ['']: #  check if friendlist is not empty
+                for friend in friendlist: #  go over recived friendlist
+                    for obj in self.bx.children: #  go over the existing widgets in layout
+                        if friend.split('(')[0] == obj.text.split('(')[0]:
+                            obj.text = friend #  check if button already exiest for friend
+                            check = True # if found duplicate let the program know
+                            break #  end the inside loop for better runtime
+                    if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
+                        self.bx.add_widget(Button(text=friend, on_release=self.start_private)) #  add button to friend
+                    check = False #  reset the duplicate checking variable
+            query = encrypt_message(f'é<>{user.nick}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            length = decrypt_message(client.recv(100), skey)
+            number_of_requests = decrypt_message(client.recv(int(length)), skey)
+            self.rq.text = f'Friend Requests ({str(number_of_requests)})'
+        except:
+            self.pop.content.text = 'There Was a problem connecting to server.'
+            self.pop.open()
+            time.sleep(1)
+            self.pop.dissmis()
 
 
     def start_private(self, button): # start private communications
@@ -701,12 +710,15 @@ class RemoveFriend(Screen):
         client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
         client.send(query) #  send the request to the server
         length = decrypt_message(client.recv(100), skey) #  get len of answer from server
+        for ob in self.bx.children:
+            if "Click on a friend to remove:" not in ob.text and "Go Back:" not in ob.text:
+                self.bx.remove_widget(ob)
         friendlist = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
         check = False #  set a variable for checking duplicates
         if friendlist != ['']: #  check if friendlist is not empty
             for friend in friendlist: #  go over recived friendlist
                 for obj in self.bx.children: #  go over the existing widgets in layout
-                    if friend == obj.text: #  check if button already exiest for friend
+                    if friend.split('(')[0] == obj.text.split('(')[0]: #  check if button already exiest for friend
                         check = True # if found duplicate let the program know 
                         break #  end the inside loop for better runtime
                 if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
@@ -741,10 +753,7 @@ class RemoveFriend(Screen):
         else:
             self.pop.content.text = 'An error occurred'
             self.pop.open()
-            for obj in self.bx.children:
-                if obj.text == b.text:
-                    place = self.bx.children.index(obj)
-                    self.bx.children[place].remove()
+
             time.sleep(1)
             self.pop.dismiss()
             sm.current = "friends"
@@ -770,6 +779,10 @@ class Requests(Screen):
         length = decrypt_message(client.recv(100), skey) #  get len of answer from server
         requests = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
         check = False #  set a variable for checking duplicates
+        for ob in self.bx.children:
+            if "Go Back:" not in ob.text and "Select a friend you want to add/reject:" not in ob.text :
+                self.bx.remove_widget(ob)
+                continue
         if requests != ['']: #  check if requests are not empty
             for request in requests: #  go over recived requests
                 for obj in self.bx.children: #  go over the existing widgets in layout
@@ -792,12 +805,6 @@ class Requests(Screen):
             query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
-            for obj in self.bx.children:
-                if obj.text == ans[1]:
-                    place = self.bx.children.index(obj)
-                    self.bx.children[place].remove()
-                    self.bx.children[place + 1].remove()
-                    self.bx.children[place + 2].remove()
             sm.current = 'friends'
             sm.current_screen.load()
 
@@ -805,12 +812,6 @@ class Requests(Screen):
             query = encrypt_message(f'éè╣<>reject<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
             client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
             client.send(query) #  send the request to the server
-            for obj in self.bx.children:
-                if obj.text == ans[1]:
-                    place = self.bx.children.index(obj)
-                    self.bx.children[place].remove()
-                    self.bx.children[place + 1].remove()
-                    self.bx.children[place + 2].remove()
             sm.current == 'friends'
             sm.current_screen.load()
         return
