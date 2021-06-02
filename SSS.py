@@ -335,6 +335,10 @@ class MainWindow(Screen):
             self.pop.content.text = "File Received"
             time.sleep(1)
             self.pop.dismiss()
+            self.load()
+            query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
             self.receive()
             return
         except:
@@ -342,6 +346,10 @@ class MainWindow(Screen):
             self.pop.open()
             time.sleep(1)
             self.pop.dismiss()
+            self.load()
+            query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
             self.receive()
             return
     
@@ -477,6 +485,9 @@ class MainWindow(Screen):
                     time.sleep(1)
                     self.pop.dismiss()
                     self.load()
+                    query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+                    client.send(encrypt_message(str(len(query)), skey))
+                    client.send(query)
                     self.receive()
                     return
             else:
@@ -485,6 +496,9 @@ class MainWindow(Screen):
                 time.sleep(1)
                 self.pop.dismiss()
                 self.load()
+                query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+                client.send(encrypt_message(str(len(query)), skey))
+                client.send(query)
                 self.receive()
                 return
         else:
@@ -526,6 +540,9 @@ class MainWindow(Screen):
                     return
 
                 if k[0] == 'filing±°':
+                    query = encrypt_message(f'Ω¥•¼<>', skey)
+                    client.send(encrypt_message(str(len(query)), skey))
+                    client.send(query)
                     return
 
                 else:

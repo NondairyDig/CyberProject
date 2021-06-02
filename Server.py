@@ -33,7 +33,7 @@ def verify(c, addr): #  a function to verify the connection between the server a
     eo = int(c.recv(5).decode()) #  get the public key part
     pubv = rsa.key.PublicKey(no, eo) #  assemble the public key
     signature = c.recv(64) #  get the signature 
-    time.sleep(0.3)
+    time.sleep(0.2)
     rsa.verify(message, signature, pubv) #  verify the signature
     print('Client: ' + str(addr) + ' Verification Completed')
 
@@ -66,7 +66,7 @@ def logincheck(c): #  a function of checking the login (client socket)
 
 def login(c, sesk): #  a function to initialize the login process
     ayy = logincheck(c) # call the logincheck function
-    time.sleep(0.5)
+    time.sleep(0.1)
     keke = ayy[1] #  the password returned
     nname = ayy[0] #  the username returned
     auth = ayy[2]  #  if authorized returned
@@ -81,10 +81,10 @@ def login(c, sesk): #  a function to initialize the login process
     if auth: #  if the server authorized access
         log = rsa.encrypt((keke + b'auth'), publ) #  send password + salt to confirm login
         c.send(log) #  send
-        time.sleep(0.2) #  wait
+        time.sleep(0.1) #  wait
         secret_key = rsa.encrypt(sesk, publ) #  send session key to client
         c.send(secret_key) #  send
-        time.sleep(0.2) # wait
+        time.sleep(0.1) # wait
         nicknam = rsa.encrypt(nname.encode(), publ) #  send nickname from database
         c.send(nicknam) # send
         return True, nname, f_list # return authorization confirmation, nickname, friendlist
@@ -289,11 +289,18 @@ def handle(client, addr, session_key):
     client.recv(1024)
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
+    tries = 0
     while True:
         check = False
         try:
-            buff = decrypt_message(client.recv(100), session_key)
-            message = decrypt_message(client.recv(int(buff)), session_key)
+            try:
+                buff = decrypt_message(client.recv(100), session_key)
+                message = decrypt_message(client.recv(int(buff)), session_key)
+            except:
+                if tries == 3:
+                    raise Exception('imp')
+                tries += 1
+                continue
             print(message)
             split = message.split('<>')
             if message == split: #  prevent not compatable packet sending
