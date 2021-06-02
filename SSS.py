@@ -1,4 +1,5 @@
 from kivy import Config
+from kivy.clock import triggered
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '800')
 Config.set('graphics', 'minimum_width', '800')
@@ -85,6 +86,19 @@ def invalidEmail(): #  a function of what to do if the email entered is not vali
                   size_hint=(None, None), size=(400, 400))
     pop.content.text = "bruh"
     pop.open()
+
+def error():
+    pop = Popup(title='Error', auto_dismiss = False,
+                  content=Label(text='Please Re-enter Email'),
+                  size_hint=(None, None), size=(400, 400))
+    pop.content.text = 'There Was a problem connecting to server. try to refresh or restart'
+    pop.open()
+    time.sleep(1)
+    pop.dismiss()
+
+def error_t():
+    t = threading.Thread(target=error)
+    t.start()
 
 
 class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed for kivy(GUI))
@@ -307,15 +321,21 @@ class MainWindow(Screen):
                   size_hint=(None, None), size=(250, 100))
 
     def getfile(self, b): # a function to pick a directory to store the picked file
-        Tk().withdraw() #  dismiss the main screen
-        pathname = filedialog.askdirectory() #  get save path
-        if pathname == '':
-            return
-        query = encrypt_message('▓quitf', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        f_t = threading.Thread(target=self.getfile_main, args=(b, pathname))
-        f_t.start()
+        try:
+            Tk().withdraw() #  dismiss the main screen
+            pathname = filedialog.askdirectory() #  get save path
+            if pathname == '':
+                return
+            query = encrypt_message('▓quitf', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            f_t = threading.Thread(target=self.getfile_main, args=(b, pathname))
+            f_t.start()
+        except:
+            self.pop.content.text = 'There Was a problem connecting to server. try to refresh'
+            self.pop.open()
+            time.sleep(1)
+            self.pop.dismiss()
 
     def getfile_main(self, b, d): # a function called to a thread to get/download a picked file to the server
         try:
@@ -342,7 +362,7 @@ class MainWindow(Screen):
             self.receive()
             return
         except:
-            self.pop.content.text = 'An error occurd please wait or restart the app'
+            self.pop.content.text = 'An error occurd please try again or re enter the room'
             self.pop.open()
             time.sleep(1)
             self.pop.dismiss()
@@ -409,29 +429,32 @@ class MainWindow(Screen):
         
 
     def load(self): # a function to load files
-        global target
-        self.gx.bind(minimum_height=self.gx.setter('height')) #  adapt layout size
-        query = encrypt_message(f'₧ƒ<>{user.nick}<>{target}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        length = decrypt_message(client.recv(100), skey)
-        filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fileist from server and sort it
-        check = False #  set a variable for checking duplicates
-        if filelist != ['']: #  check if filelist is not empty
-            for file in filelist: #  go over recived filelist
-                for obj in self.gx.children: #  go over the existing widgets in layout
-                    if file == obj.text: #  check if button already exiest for file
-                        check = True # if found duplicate let the program know 
-                        break #  end the inside loop
-                if file != '' and not check: #  if file is not nothing and his duplicate not found
-                    self.gx.add_widget(Button(text=file, on_release=self.getfile)) #  add button to friend
-                check = False #  reset the duplicate checking variable
-        query = encrypt_message(f'§≡üΩ¥•¼<>{target}<>{user.nick}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        length = decrypt_message(client.recv(100), skey)
-        history = decrypt_message(client.recv(int(length)), skey)
-        self.tb.text = history
+        try:
+            global target
+            self.gx.bind(minimum_height=self.gx.setter('height')) #  adapt layout size
+            query = encrypt_message(f'₧ƒ<>{user.nick}<>{target}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            length = decrypt_message(client.recv(100), skey)
+            filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fileist from server and sort it
+            check = False #  set a variable for checking duplicates
+            if filelist != ['']: #  check if filelist is not empty
+                for file in filelist: #  go over recived filelist
+                    for obj in self.gx.children: #  go over the existing widgets in layout
+                        if file == obj.text: #  check if button already exiest for file
+                            check = True # if found duplicate let the program know 
+                            break #  end the inside loop
+                    if file != '' and not check: #  if file is not nothing and his duplicate not found
+                        self.gx.add_widget(Button(text=file, on_release=self.getfile)) #  add button to friend
+                    check = False #  reset the duplicate checking variable
+            query = encrypt_message(f'§≡üΩ¥•¼<>{target}<>{user.nick}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            length = decrypt_message(client.recv(100), skey)
+            history = decrypt_message(client.recv(int(length)), skey)
+            self.tb.text = history
+        except:
+            error_t()
 
     def write(self): # a function that writes to the server a message to send to the target
         self.mtb.focus = True
@@ -445,8 +468,7 @@ class MainWindow(Screen):
                 query = encrypt_message('▓<>' + target + '<>' + message, skey)
                 client.send(encrypt_message(str(len(query)), skey))
                 client.send(query)
-            except Exception as e:
-                print(e)
+            except:
                 t = self.tb.text
                 self.tb.text =  str(t) + f'couldn\'t send message please try again or restart the app\r\n'
         elif len(str(self.mtb.text)) < 1000:
@@ -460,67 +482,74 @@ class MainWindow(Screen):
             self.mtb.text = t
 
     def send_file(self, f, t): # a functions called to a thread to upload a file to the server
-        if f != '':
-            p = str(f.split('/')[-1])
-            file = open(str(f), 'rb')
-            query = encrypt_message(f'ƒ₧—©±°◙<>{p}<>{t}', skey)
-            length = encrypt_message(str(len(query)), skey)
-            client.send(length)
-            client.send(query)
-            while True:
-                data = file.read(1024)
-                if data == b'':
-                    file.close()
-                    client.send(encrypt_message('-1', skey))
-                    break
-                query = encrypt_file(data, skey)
-                client.send(encrypt_message(str(len(query)), skey))
+        try:
+            if f != '':
+                p = str(f.split('/')[-1])
+                file = open(str(f), 'rb')
+                query = encrypt_message(f'ƒ₧—©±°◙<>{p}<>{t}', skey)
+                length = encrypt_message(str(len(query)), skey)
+                client.send(length)
                 client.send(query)
-                time.sleep(0.0000000001)
-            buff = decrypt_message(client.recv(100), skey)
-            ans = decrypt_message(client.recv(int(buff)), skey)
-            if ans == 'uploaded successfully©◙ƒ<>':
-                    self.pop.content.text = 'Uploaded file'
-                    self.pop.open()
-                    time.sleep(1)
-                    self.pop.dismiss()
-                    self.load()
-                    query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+                while True:
+                    data = file.read(1024)
+                    if data == b'':
+                        file.close()
+                        client.send(encrypt_message('-1', skey))
+                        break
+                    query = encrypt_file(data, skey)
                     client.send(encrypt_message(str(len(query)), skey))
                     client.send(query)
-                    self.receive()
-                    return
+                    time.sleep(0.0000000001)
+                buff = decrypt_message(client.recv(100), skey)
+                ans = decrypt_message(client.recv(int(buff)), skey)
+                if ans == 'uploaded successfully©◙ƒ<>':
+                        self.pop.content.text = 'Uploaded file'
+                        self.pop.open()
+                        time.sleep(1)
+                        self.pop.dismiss()
+                        self.load()
+                        query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+                        client.send(encrypt_message(str(len(query)), skey))
+                        client.send(query)
+                        self.receive()
+                        return
+                else:
+                    raise Exception()
             else:
-                self.pop.content.text = 'Uploading file failed'
-                self.pop.open()
-                time.sleep(1)
-                self.pop.dismiss()
-                self.load()
-                query = encrypt_message(f'Ω¥•¼<>{target}', skey)
-                client.send(encrypt_message(str(len(query)), skey))
-                client.send(query)
-                self.receive()
-                return
-        else:
-            return
+                raise Exception()
 
-    def sendFile(self): # a function to pick a file and start a thread to upload it
-        Tk().withdraw() #  dismiss the main screen
-        filename = filedialog.askopenfilename() #  get picked file path
-        if filename != '':
-            if int(os.path.getsize(filename)) < 10000000: #  limit file size to 10 MB
-                query = encrypt_message('▓quitf', skey)
-                client.send(encrypt_message(str(len(query)), skey))
-                client.send(query)
-                self.pop.content.text = "Uploading file..."
-                self.pop.open()
-                file_thread = threading.Thread(target=self.send_file, args=(filename, target))
-                file_thread.start()
-        else:
-            self.pop.content.text = "File is too large"
+        except:
+            self.pop.content.text = 'Uploading file failed'
             self.pop.open()
             time.sleep(1)
             self.pop.dismiss()
+            self.load()
+            query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            self.receive()
+            return
+
+    def sendFile(self): # a function to pick a file and start a thread to upload it
+        try:
+            Tk().withdraw() #  dismiss the main screen
+            filename = filedialog.askopenfilename() #  get picked file path
+            if filename != '':
+                if int(os.path.getsize(filename)) < 10000000: #  limit file size to 10 MB
+                    query = encrypt_message('▓quitf', skey)
+                    client.send(encrypt_message(str(len(query)), skey))
+                    client.send(query)
+                    self.pop.content.text = "Uploading file..."
+                    self.pop.open()
+                    file_thread = threading.Thread(target=self.send_file, args=(filename, target))
+                    file_thread.start()
+            else:
+                self.pop.content.text = "File is too large"
+                self.pop.open()
+                time.sleep(1)
+                self.pop.dismiss()
+        except:
+            error_t()
 
     def receive_main(self): #  a function called to a thread to recieve message while in chat
         global special, special_vid
@@ -565,6 +594,7 @@ class MainWindow(Screen):
         else:
             self.vo.disabled = False
             self.up.disabled = False
+
         r_t = threading.Thread(target=self.receive_main)
         r_t.start()
 
@@ -573,43 +603,53 @@ class MainWindow(Screen):
         l_t.start()
 
     def leave_main(self): # leave room function
-        self.tb.text = ''
-        global target
-        query = encrypt_message(f'Ω¥•¼<>', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        if target == 'public':
-            query = encrypt_message('t◙<>quit_pub', skey)
+        try:
+            self.tb.text = ''
+            global target
+            query = encrypt_message(f'Ω¥•¼<>', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
-        query = encrypt_message('▓quit<>', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        target = ''
-        return
+            if target == 'public':
+                query = encrypt_message('t◙<>quit_pub', skey)
+                client.send(encrypt_message(str(len(query)), skey))
+                client.send(query)
+            query = encrypt_message('▓quit<>', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            target = ''
+            return
+        except:
+            error_t()
+        
 
 
 class FriendsScreen(Screen):
     bx = ObjectProperty(None)
     rq = ObjectProperty(None)
+    pop = Popup(title='Status',auto_dismiss= False, # create a popup
+                  content=Label(text='Error'),
+                  size_hint=(None, None), size=(250, 100))
 
     def add_friend_screen(self): # go to add a friend screen
         sm.current = "addfriend"
 
     def public(self): # join public room
-        global target
-        target = 'public'
-        query = encrypt_message(f'Ω¥•¼<>{target}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        query = encrypt_message('t◙<>public', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        query = encrypt_message(f'§≡üΩ¥•¼<>public<>{user.nick}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        sm.current = "main"
-        sm.current_screen.receive()
+        try:
+            global target
+            target = 'public'
+            query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            query = encrypt_message('t◙<>public', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            query = encrypt_message(f'§≡üΩ¥•¼<>public<>{user.nick}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            sm.current = "main"
+            sm.current_screen.receive()
+        except:
+            error_t()
 
     def load(self): # load list of friends
         try:
@@ -640,21 +680,21 @@ class FriendsScreen(Screen):
             number_of_requests = decrypt_message(client.recv(int(length)), skey)
             self.rq.text = f'Friend Requests ({str(number_of_requests)})'
         except:
-            self.pop.content.text = 'There Was a problem connecting to server.'
-            self.pop.open()
-            time.sleep(1)
-            self.pop.dissmis()
+            error_t()
 
 
     def start_private(self, button): # start private communications
-        global target
-        target = button.text.split('(')[0]
-        query = encrypt_message(f'Ω¥•¼<>{target}', skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        sm.current = "main"
-        sm.current_screen.load()
-        sm.current_screen.receive()
+        try:
+            global target
+            target = button.text.split('(')[0]
+            query = encrypt_message(f'Ω¥•¼<>{target}', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            sm.current = "main"
+            sm.current_screen.load()
+            sm.current_screen.receive()
+        except:
+            error_t()
 
     def remove_friend(self): # got to remove a friend screen
         sm.current = "remove"
@@ -685,26 +725,29 @@ class AddFriend(Screen):
         af.start()
     
     def add_friend_main(self): # adding a friend function
-        global user
-        self.pop.content.text = 'Adding Friend...'
-        self.pop.open()
-        query = encrypt_message(f'üΩ¥<>{user.nick}<>{self.friend.text}' , skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        length = decrypt_message(client.recv(100), skey)
-        ans = decrypt_message(client.recv(int(length)), skey)
-        if ans == 'added':
-            self.pop.content.text = 'Friend request sent successfully'
-            time.sleep(1)
-            self.pop.dismiss()
-            sm.current = "friends"
-            sm.current_screen.load()
-        else:
-            self.pop.content.text = 'No such user found'
+        try:
+            global user
+            self.pop.content.text = 'Adding Friend...'
             self.pop.open()
-            time.sleep(1)
-            self.pop.dismiss()
-        return
+            query = encrypt_message(f'üΩ¥<>{user.nick}<>{self.friend.text}' , skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            length = decrypt_message(client.recv(100), skey)
+            ans = decrypt_message(client.recv(int(length)), skey)
+            if ans == 'added':
+                self.pop.content.text = 'Friend request sent successfully'
+                time.sleep(1)
+                self.pop.dismiss()
+                sm.current = "friends"
+                sm.current_screen.load()
+            else:
+                self.pop.content.text = 'No such user found'
+                self.pop.open()
+                time.sleep(1)
+                self.pop.dismiss()
+            return
+        except:
+            error_t()
     
     def goBack(self): # go back to friends screen
         sm.current = "friends"
@@ -722,61 +765,66 @@ class RemoveFriend(Screen):
         sm.current_screen.load() #  call the loading friends method of the friends screen
 
     def load(self): # a method for loading the friendlist
-        self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
-        query = encrypt_message(f'ø∞ö<>{user.email.decode()}', skey) #  send the required signal to the server
-        client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
-        client.send(query) #  send the request to the server
-        length = decrypt_message(client.recv(100), skey) #  get len of answer from server
-        for ob in self.bx.children:
-            if "Click on a friend to remove:" not in ob.text and "Go Back:" not in ob.text:
-                self.bx.remove_widget(ob)
-        friendlist = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
-        check = False #  set a variable for checking duplicates
-        if friendlist != ['']: #  check if friendlist is not empty
-            for friend in friendlist: #  go over recived friendlist
-                for obj in self.bx.children: #  go over the existing widgets in layout
-                    if friend.split('(')[0] == obj.text.split('(')[0]: #  check if button already exiest for friend
-                        check = True # if found duplicate let the program know 
-                        break #  end the inside loop for better runtime
-                if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
-                    self.bx.add_widget(Button(text=friend, on_release=self.remove_f)) #  add button to friend
-                check = False #  reset the duplicate checking variable
+        try:
+            self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
+            query = encrypt_message(f'ø∞ö<>{user.email.decode()}', skey) #  send the required signal to the server
+            client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+            client.send(query) #  send the request to the server
+            length = decrypt_message(client.recv(100), skey) #  get len of answer from server
+            for ob in self.bx.children:
+                if "Click on a friend to remove:" not in ob.text and "Go Back:" not in ob.text:
+                    self.bx.remove_widget(ob)
+            friendlist = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
+            check = False #  set a variable for checking duplicates
+            if friendlist != ['']: #  check if friendlist is not empty
+                for friend in friendlist: #  go over recived friendlist
+                    for obj in self.bx.children: #  go over the existing widgets in layout
+                        if friend.split('(')[0] == obj.text.split('(')[0]: #  check if button already exiest for friend
+                            check = True # if found duplicate let the program know 
+                            break #  end the inside loop for better runtime
+                    if friend.split('(')[0] != '' and not check: #  if friend is not nothing and his duplicate not found
+                        self.bx.add_widget(Button(text=friend, on_release=self.remove_f)) #  add button to friend
+                    check = False #  reset the duplicate checking variable
+        except:
+            error_t()
 
     def remove_f(self, b): #  is getting the screen and button
         rf = threading.Thread(target=self.remove_f_main, args=(b,))
         rf.start()
     
     def remove_f_main(self, b): # main removing friend function
-        global user #  get the global user variable
-        self.pop.content.text = 'Removing friend...'
-        self.pop.open()
-        friend = b.text.split('(')[0]
-        query = encrypt_message(f'™╣¶<>{user.email.decode()}<>{friend}' , skey)
-        client.send(encrypt_message(str(len(query)), skey))
-        client.send(query)
-        length = decrypt_message(client.recv(100), skey)
-        ans = decrypt_message(client.recv(int(length)), skey)
-        if ans == 'removed':
-            self.pop.content.text = 'Removed friend successfully'
+        try:
+            global user #  get the global user variable
+            self.pop.content.text = 'Removing friend...'
             self.pop.open()
-            self.bx.remove_widget(b)
-            time.sleep(1)
-            self.pop.dismiss()
-            sm.current = "friends"
-            for obj in sm.current_screen.bx.children:
-                if obj.text.split('(')[0] == friend:
-                    sm.current_screen.bx.remove_widget(obj)
-            sm.current_screen.load()
-        else:
-            self.pop.content.text = 'An error occurred'
-            self.pop.open()
+            friend = b.text.split('(')[0]
+            query = encrypt_message(f'™╣¶<>{user.email.decode()}<>{friend}' , skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
+            length = decrypt_message(client.recv(100), skey)
+            ans = decrypt_message(client.recv(int(length)), skey)
+            if ans == 'removed':
+                self.pop.content.text = 'Removed friend successfully'
+                self.pop.open()
+                self.bx.remove_widget(b)
+                time.sleep(1)
+                self.pop.dismiss()
+                sm.current = "friends"
+                for obj in sm.current_screen.bx.children:
+                    if obj.text.split('(')[0] == friend:
+                        sm.current_screen.bx.remove_widget(obj)
+                sm.current_screen.load()
+            else:
+                self.pop.content.text = 'An error occurred'
+                self.pop.open()
 
-            time.sleep(1)
-            self.pop.dismiss()
-            sm.current = "friends"
-            sm.current_screen.load()
-        return
-
+                time.sleep(1)
+                self.pop.dismiss()
+                sm.current = "friends"
+                sm.current_screen.load()
+            return
+        except:
+            error_t()
 
 class Requests(Screen):
     bx = ObjectProperty(None)
@@ -789,49 +837,55 @@ class Requests(Screen):
         sm.current_screen.load()
 
     def load(self): # a method for loading the friend requests
-        self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
-        query = encrypt_message(f'₧—é<>{user.nick}<>', skey) #  send the required signal to the server
-        client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
-        client.send(query) #  send the request to the server
-        length = decrypt_message(client.recv(100), skey) #  get len of answer from server
-        requests = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
-        check = False #  set a variable for checking duplicates
-        for ob in self.bx.children:
-            if "Go Back:" not in ob.text and "Select a friend you want to add/reject:" not in ob.text :
-                self.bx.remove_widget(ob)
-                continue
-        if requests != ['']: #  check if requests are not empty
-            for request in requests: #  go over recived requests
-                for obj in self.bx.children: #  go over the existing widgets in layout
-                    if request == obj.text + ':': #  check if request already exiests
-                        check = True # if found duplicate let the program know 
-                        break #  end the inside loop for better runtime
-                if request != '' and not check: #  if request is not nothing and its duplicate not found
-                    self.bx.add_widget(Label(text=(request + ':')))
-                    self.bx.add_widget(Button(text=('accept ' + request), on_release=self.accept_reject)) #  add button to accept
-                    self.bx.add_widget(Button(text=('reject ' + request), on_release=self.accept_reject)) #  add button to reject
-                check = False #  reset the duplicate checking variable
+        try:
+            self.bx.bind(minimum_height=self.bx.setter('height')) #  adapt layout size
+            query = encrypt_message(f'₧—é<>{user.nick}<>', skey) #  send the required signal to the server
+            client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+            client.send(query) #  send the request to the server
+            length = decrypt_message(client.recv(100), skey) #  get len of answer from server
+            requests = decrypt_message(client.recv(int(length)), skey).split('-') #  get friendlist from server and sort it
+            check = False #  set a variable for checking duplicates
+            for ob in self.bx.children:
+                if "Go Back:" not in ob.text and "Select a friend you want to add/reject:" not in ob.text :
+                    self.bx.remove_widget(ob)
+                    continue
+            if requests != ['']: #  check if requests are not empty
+                for request in requests: #  go over recived requests
+                    for obj in self.bx.children: #  go over the existing widgets in layout
+                        if request == obj.text + ':': #  check if request already exiests
+                            check = True # if found duplicate let the program know 
+                            break #  end the inside loop for better runtime
+                    if request != '' and not check: #  if request is not nothing and its duplicate not found
+                        self.bx.add_widget(Label(text=(request + ':')))
+                        self.bx.add_widget(Button(text=('accept ' + request), on_release=self.accept_reject)) #  add button to accept
+                        self.bx.add_widget(Button(text=('reject ' + request), on_release=self.accept_reject)) #  add button to reject
+                    check = False #  reset the duplicate checking variable
+        except:
+            error_t()
 
     def accept_reject(self, b): # accept\reject thread
         ar = threading.Thread(target=self.accept_reject_main, args=(b,))
         ar.start()
 
     def accept_reject_main(self, b): # main function to accept\reject friend request
-        ans = b.text.split(' ')
-        if ans[0] == 'accept':
-            query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
-            client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
-            client.send(query) #  send the request to the server
-            sm.current = 'friends'
-            sm.current_screen.load()
+        try:
+            ans = b.text.split(' ')
+            if ans[0] == 'accept':
+                query = encrypt_message(f'éè╣<>accept<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
+                client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+                client.send(query) #  send the request to the server
+                sm.current = 'friends'
+                sm.current_screen.load()
 
-        elif ans[0] == 'reject':
-            query = encrypt_message(f'éè╣<>reject<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
-            client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
-            client.send(query) #  send the request to the server
-            sm.current == 'friends'
-            sm.current_screen.load()
-        return
+            elif ans[0] == 'reject':
+                query = encrypt_message(f'éè╣<>reject<>{user.nick}<>{ans[1]}', skey) #  send the required signal to the server
+                client.send(encrypt_message(str(len(query)), skey)) #  send the length of the request to the server
+                client.send(query) #  send the request to the server
+                sm.current == 'friends'
+                sm.current_screen.load()
+            return
+        except:
+            error_t()
 
 
 class WindowManager(ScreenManager):
