@@ -6,6 +6,7 @@
     email: email
     password: password
     btn:btn
+    password_con:password_con
 
     FloatLayout:
         cols:1
@@ -15,14 +16,14 @@
 
             Label:
                 text: "Create an Account"
-                size_hint: 0.8, 0.2
+                size_hint: 0.8, 0.1
                 pos_hint: {"x":0.1, "top":1}
                 font_size: (root.width**2 + root.height**2) / 17**4
 
             Label:
-                size_hint: 0.5,0.12
+                size_hint: 0.5,0.1
                 pos_hint: {"x":0, "top":0.8}
-                text: "Name: "
+                text: "Username: "
                 font_size: (root.width**2 + root.height**2) / 17**4
 
             TextInput:
@@ -34,13 +35,13 @@
                 font_size: (root.width**2 + root.height**2) / 17**4
 
             Label:
-                size_hint: 0.5,0.12
-                pos_hint: {"x":0, "top":0.8-0.13}
+                size_hint: 0.5,0.1
+                pos_hint: {"x":0, "top":0.7}
                 text: "Email: "
                 font_size: (root.width**2 + root.height**2) / 17**4
 
             TextInput:
-                pos_hint: {"x":0.5, "top":0.67}
+                pos_hint: {"x":0.5, "top":0.7}
                 size_hint: 0.4, 0.08
                 write_tab: False
                 id: email
@@ -48,15 +49,29 @@
                 font_size: (root.width**2 + root.height**2) / 17**4
 
             Label:
-                size_hint: 0.5,0.12
-                pos_hint: {"x":0, "top":0.8-0.13*2}
+                size_hint: 0.5,0.1
+                pos_hint: {"x":0, "top":0.6}
                 text: "Password: "
                 font_size: (root.width**2 + root.height**2) / 17**4
 
             TextInput:
-                pos_hint: {"x":0.5, "top":0.8-0.13*2}
+                pos_hint: {"x":0.5, "top":0.6}
                 size_hint: 0.4, 0.08
                 id: password
+                write_tab: False
+                multiline: False
+                password: True
+                font_size: (root.width**2 + root.height**2) / 17**4
+            Label:
+                size_hint: 0.5,0.1
+                pos_hint: {"x":0, "top":0.5}
+                text: "Confirm Password: "
+                font_size: (root.width**2 + root.height**2) / 17**4
+
+            TextInput:
+                pos_hint: {"x":0.5, "top":0.5}
+                size_hint: 0.4, 0.08
+                id: password_con
                 write_tab: False
                 multiline: False
                 password: True

@@ -67,7 +67,6 @@ def decrypt_file(encrypted_file, key): #  a function for decrypting a file( a me
     decrypted_file = f.decrypt(encrypted_file)
     return decrypted_file
 
-
 def invalidUsername(): #  a function of notifieng if the username entered is not valid
     pop = Popup(title='Invalid Username',
                   content=Label(text='username needs to contain only numbers and letters if empty, please enter username.'),
@@ -80,18 +79,31 @@ def invalidPassword(): #  a function of notifieng if the password entered is not
                   size_hint=(None, None), size=(400, 200))
 
     pop.open()
+
 def invalidEmail(): #  a function of what to do if the email entered is not valid
     pop = Popup(title='Invalid Email',
-                  content=Label(text='Please Re-enter Email'),
+                  content=Label(text='Email Doesn\'t Exists'),
                   size_hint=(None, None), size=(400, 200))
-    pop.content.text = "bruh"
+    pop.open()
+
+def unmatchedPass():
+    pop = Popup(title='Invalid Email',
+                content=Label(text='Passwords Are Not Matched'),
+                size_hint=(None, None), size=(400, 200))
     pop.open()
 
 def error():
     pop = Popup(title='Error', auto_dismiss = False,
-                  content=Label(text='Please Re-enter Email'),
+                  content=Label(text='There Was a problem connecting to server. try to refresh or restart'),
                   size_hint=(None, None), size=(500, 200))
-    pop.content.text = 'There Was a problem connecting to server. try to refresh or restart'
+    pop.open()
+    time.sleep(1)
+    pop.dismiss()
+
+def largeFile():
+    pop = Popup(title='Error', auto_dismiss = False,
+                content=Label(text='File is to large and must be under 10MB'),
+                size_hint=(None, None), size=(500, 200))
     pop.open()
     time.sleep(1)
     pop.dismiss()
@@ -105,6 +117,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
     username = ObjectProperty(None)
     email = ObjectProperty(None)
     password = ObjectProperty(None)
+    password_con = ObjectProperty(None)
     btn = ObjectProperty(None)
     pop = Popup(title='Status', auto_dismiss=False,
                   content=Label(text='Connecting...'),
@@ -114,6 +127,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_username = self.username.text
         s_email = self.email.text
         s_password = self.password.text
+        s_password_confirm = self.password_con.text
         self.pop.open()
         Response = requests.get("https://isitarealemail.com/api/email/validate", params = {'email': s_email})
         EmailStatus = Response.json()['status']
@@ -122,6 +136,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""
+            self.password_con.text = ""
             return
 
         if len(s_username) < 1 or s_username.isalnum() == False or ' ' in s_username:
@@ -129,6 +144,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""
+            self.password_con.text = ""
             return
 
         if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email or s_email.count('@') > 1 or s_email.count('.') > 1:
@@ -136,6 +152,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""
+            self.password_con.text = ""
             return
 
         if len(s_password) < 7 or len(s_password) > 36:
@@ -143,7 +160,17 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""
+            self.password_con.text = ""
             return
+        
+        if s_password != s_password_confirm:
+            unmatchedPass()
+            self.email.text = ""
+            self.password.text = ""
+            self.username.text = ""
+            self.password_con.text = ""
+            return
+
         else:
             s_t = threading.Thread(target=self.signup, args=(s_email, s_password, s_username))
             s_t.start()
@@ -448,7 +475,7 @@ class MainWindow(Screen):
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
             length = decrypt_message(client.recv(100), skey)
-            filelist = decrypt_message(client.recv(int(length)), skey).split('-') #  get fileist from server and sort it
+            filelist = decrypt_message(client.recv(int(length)), skey).split('<>') #  get fileist from server and sort it
             check = False #  set a variable for checking duplicates
             if filelist != ['']: #  check if filelist is not empty
                 for file in filelist: #  go over recived filelist
@@ -503,7 +530,7 @@ class MainWindow(Screen):
                 client.send(length)
                 client.send(query)
                 while True:
-                    data = file.read(1024)
+                    data = file.read(32768)
                     if data == b'':
                         file.close()
                         client.send(encrypt_message('-1', skey))
@@ -547,7 +574,7 @@ class MainWindow(Screen):
             Tk().withdraw() #  dismiss the main screen
             filename = filedialog.askopenfilename() #  get picked file path
             if filename != '':
-                if int(os.path.getsize(filename)) < 10000000: #  limit file size to 10 MB
+                if int(os.path.getsize(filename)) < 100000000: #  limit file size to 10 MB
                     query = encrypt_message('▓quitf', skey)
                     client.send(encrypt_message(str(len(query)), skey))
                     client.send(query)
@@ -556,10 +583,7 @@ class MainWindow(Screen):
                     file_thread = threading.Thread(target=self.send_file, args=(filename, target))
                     file_thread.start()
             else:
-                self.pop.content.text = "File is too large"
-                self.pop.open()
-                time.sleep(1)
-                self.pop.dismiss()
+                largeFile()
         except:
             error_t()
 

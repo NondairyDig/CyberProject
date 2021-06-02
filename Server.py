@@ -462,30 +462,33 @@ def handle(client, addr, session_key):
                 else:
                     tosend = ''
                     for file in filelist:
-                        tosend += str(file[0]) + '-'
+                        tosend += str(file[0]) + '<>'
                     query = encrypt_message(tosend, session_key)
                     client.send(encrypt_message(str(len(query)), session_key))
                     client.send(query)
 
             elif split[0] == '◙°±©—₧ƒ': #  client-server signal for getting a file
-                temp = open('files\\temp' + split[1]+split[2], 'wb+')
-                cur.execute('''SELECT data FROM not_files WHERE filename = (?) AND access = (?);''', (str(split[1]), str(split[2])))
-                con.commit()
-                data = cur.fetchall()[0][0]
-                temp.write(data)
-                temp.close()
-                temp = open('files\\temp' + split[1]+split[2], 'rb+')
-                while True:
-                    data = temp.read(1024)
-                    if data == b'':
-                        temp.close()
-                        client.send(encrypt_message('-1', session_key))
-                        break
-                    query = encrypt_file(data, session_key)
-                    client.send(encrypt_message(str(len(query)), session_key))
-                    client.send(query)
-                    time.sleep(0.0000000001)
-                os.remove('files\\temp' + split[1]+split[2])
+                try:
+                    temp = open('files\\temp' + split[1]+split[2], 'wb+')
+                    cur.execute('''SELECT data FROM not_files WHERE filename = (?) AND access = (?);''', (str(split[1]), str(split[2])))
+                    con.commit()
+                    data = cur.fetchall()[0][0]
+                    temp.write(data)
+                    temp.close()
+                    temp = open('files\\temp' + split[1]+split[2], 'rb+')
+                    while True:
+                        data = temp.read(32768)
+                        if data == b'':
+                            temp.close()
+                            client.send(encrypt_message('-1', session_key))
+                            break
+                        query = encrypt_file(data, session_key)
+                        client.send(encrypt_message(str(len(query)), session_key))
+                        client.send(query)
+                        time.sleep(0.0000000001)
+                    os.remove('files\\temp' + split[1]+split[2])
+                except Exception as e:
+                    print(e)
 
             elif split[0] == '▓quitf': # signal for quiting temporerly
                 query = encrypt_message('filing±°<>', session_key)
