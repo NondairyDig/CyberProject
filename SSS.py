@@ -78,7 +78,6 @@ def invalidPassword(): #  a function of notifieng if the password entered is not
                   size_hint=(None, None), size=(400, 200))
 
     pop.open()
-
 def invalidEmail(): #  a function of what to do if the email entered is not valid
     pop = Popup(title='Invalid Email',
                   content=Label(text='Please Re-enter Email'),
@@ -322,7 +321,7 @@ class MainWindow(Screen):
     def getfile(self, b): # a function to pick a directory to store the picked file
         try:
             Tk().withdraw() #  dismiss the main screen
-            pathname = filedialog.askdirectory() #  get save path
+            pathname = filedialog.asksaveasfilename(initialfile=b.text) #  get save path
             if pathname == '':
                 return
             query = encrypt_message('▓quitf', skey)
@@ -338,7 +337,11 @@ class MainWindow(Screen):
 
     def getfile_main(self, b, d): # a function called to a thread to get/download a picked file to the server
         try:
-            file = open(str(d) + '\\'+ str(b.text), 'ab')
+            try:
+                os.remove(str(d))
+            except:
+                pass
+            file = open(str(d), 'ab')
             self.pop.content.text = "Getting file..."
             self.pop.open()
             query = encrypt_message(f'◙°±©—₧ƒ<>{b.text}<>{user.nick}', skey)
@@ -358,6 +361,7 @@ class MainWindow(Screen):
             query = encrypt_message(f'Ω¥•¼<>{target}', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
+            file.close()
             self.receive()
             return
         except:
@@ -370,6 +374,7 @@ class MainWindow(Screen):
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
             self.receive()
+            file.close()
             return
     
     def send_voice(self): # a function to send voice recordings
