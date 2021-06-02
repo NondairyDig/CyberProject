@@ -304,9 +304,7 @@ def handle(client, addr, session_key):
             try:
                 buff = decrypt_message(client.recv(100), session_key)
                 message = decrypt_message(client.recv(int(buff)), session_key)
-                print(message)
-            except Exception as e:
-                print(str(e) + 'f ')
+            except:
                 if tries == 3:
                     raise Exception('imp')
                 tries += 1
@@ -439,14 +437,11 @@ def handle(client, addr, session_key):
                 cur.execute('''SELECT name FROM not_users WHERE name = (?) ;''', (v[1],))
                 con.commit()
                 ans = cur.fetchall()[0][0]
-                print(ans)
                 cur.execute('''INSERT INTO not_files (filename, access, owner) VALUES (?, ?, ?);''' , (split[1], split[2], ans))
                 con.commit()
-                print('2')
                 data = b''
                 while True:
                     buff = decrypt_message(client.recv(100), session_key)
-                    print(buff)
                     if buff == '-1':
                         break
                     data += decrypt_file(client.recv(int(buff)), session_key)
@@ -517,8 +512,7 @@ def handle(client, addr, session_key):
                 if not check:
                     broadcast(split[2], split[1], v[1], '', client)
 
-        except Exception as e:
-            print(e)
+        except:
             print(str(addr) + ' disconnected')
             for cl in clients:
                 if cl[0] == client:
@@ -557,7 +551,6 @@ def voice(c):
         if clie[1] == u_nick:
             vkey = clie[2]
     if vkey == '':
-        print('b')
         return
     buff = decrypt_message(c.recv(100), vkey)
     message = decrypt_message(c.recv(int(buff)), vkey)
@@ -566,7 +559,6 @@ def voice(c):
         if spl[1] == clie[1]:
             tarkey = clie[2]
     if tarkey == '':
-        print('a')
         return
     voice_cl.append([c, spl[2], spl[1]])
     ayo = False
