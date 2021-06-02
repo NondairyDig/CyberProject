@@ -25,6 +25,7 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import pyaudio
+import requests
 
 
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
@@ -114,6 +115,15 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_email = self.email.text
         s_password = self.password.text
         self.pop.open()
+        Response = requests.get("https://isitarealemail.com/api/email/validate", params = {'email': s_email})
+        EmailStatus = Response.json()['status']
+        if EmailStatus != 'valid':
+            invalidEmail()
+            self.email.text = ""
+            self.password.text = ""
+            self.username.text = ""
+            return
+
         if len(s_username) < 1 or s_username.isalnum() == False or ' ' in s_username:
             invalidUsername()
             self.email.text = ""
@@ -241,9 +251,7 @@ class LoginWindow(Screen):
         
         if len(s_password) < 7 or len(s_password) > 35:
             invalidPassword()
-            self.email.text = ""
             self.password.text = ""
-            self.username.text = ""
             return
         else:
             l_t = threading.Thread(target=self.login, args=(s_email, s_password,))
