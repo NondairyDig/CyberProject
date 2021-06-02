@@ -28,6 +28,7 @@ import pyaudio
 import requests
 
 
+#to-do: Video Transfer(Re-Emmbed), SMTP server for email auth*, sign-up Security Patch.
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
@@ -366,10 +367,7 @@ class MainWindow(Screen):
             f_t = threading.Thread(target=self.getfile_main, args=(b, pathname))
             f_t.start()
         except:
-            self.pop.content.text = 'There Was a problem connecting to server. try to refresh'
-            self.pop.open()
-            time.sleep(1)
-            self.pop.dismiss()
+            error_t()
 
     def getfile_main(self, b, d): # a function called to a thread to get/download a picked file to the server
         try:
