@@ -26,6 +26,7 @@ from tkinter import Tk
 import os
 import pyaudio
 
+
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 logged_in = False  # global variable for checking if log in is approved
@@ -813,9 +814,6 @@ class RemoveFriend(Screen):
                 time.sleep(1)
                 self.pop.dismiss()
                 sm.current = "friends"
-                for obj in sm.current_screen.bx.children:
-                    if obj.text.split('(')[0] == friend:
-                        sm.current_screen.bx.remove_widget(obj)
                 sm.current_screen.load()
             else:
                 self.pop.content.text = 'An error occurred'
