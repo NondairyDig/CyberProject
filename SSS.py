@@ -514,7 +514,7 @@ class MainWindow(Screen):
 
     def limit(self): #  called when text is inputed to check if the message is not greater then 1000 words
         if len(str(self.mtb.text)) > 1000:
-            t = self.mtb.text
+            t = self.mtb.text[:999]
             self.mtb.text = ''
             self.mtb.text = t
 

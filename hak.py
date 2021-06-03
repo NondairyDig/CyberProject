@@ -18,3 +18,4 @@ con.commit()
 
 con.close()"""
 
+print('asdf'[:2])
