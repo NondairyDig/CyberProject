@@ -31,10 +31,8 @@ import requests
 #to-do: Video Transfer(Re-Emmbed), SMTP server for email auth*, sign-up Security Patch.
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
-logged_in = False  # global variable for checking if log in is approved
 skey = b''  # global variable for session key
 user = '' #  global variable for user
-nickname = ''  # global variable for user nickname
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
 host = '192.168.1.254'  # server address
 global special 
@@ -182,8 +180,6 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         self.pop.open()
         global client
         global skey
-        global nickname
-        nickname = n
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             client.connect((host, 5554))
@@ -291,7 +287,6 @@ class LoginWindow(Screen):
         self.pop.open()
         global client
         global skey
-        global nickname
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             client.connect((host, 5554))
@@ -315,7 +310,6 @@ class LoginWindow(Screen):
         self.pop.content.text = 'Logging In...'
         skey = user.login()
         time.sleep(0.5)
-        nickname = user.nick
         if skey and skey != 'imp':
             if self.cb.active:
                 f = open('UserData.txt', 'wb')
@@ -496,7 +490,7 @@ class MainWindow(Screen):
     def write(self): # a function that writes to the server a message to send to the target
         self.mtb.focus = True
         if not str(self.mtb.text).isspace() and str(self.mtb.text) != '' and len(str(self.mtb.text)) < 1000 :
-            message = f'{nickname}: {self.mtb.text}'
+            message = f'{user.nick}: {self.mtb.text}'
             t = self.tb.text
             self.tb.text = str(t) + str(message) + '\r\n'
             self.mtb.text = ''

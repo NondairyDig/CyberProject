@@ -8,14 +8,10 @@ import sqlite3
 import os
 
 host = '192.168.1.254'
-port = 5554
 clients = []
 public = []
-buffer = b''
-files = {}
 con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
 cur = con.cursor()
-check = False
 voice_cl = []
 video_cl = []
 
@@ -264,7 +260,6 @@ def broadcast(message, target, current_name, conv, current=''):
 
 
 def handle(client, addr, session_key):
-    global check
     m = client.recv(1).decode()
     if m == 'V':
         pass
@@ -294,6 +289,8 @@ def handle(client, addr, session_key):
             pass
         else:
             return
+    else:
+        return
     client.recv(1024)
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
@@ -322,7 +319,7 @@ def handle(client, addr, session_key):
                     pass
                 client.close()
                 return
-            if split[0] == 'üΩ¥':
+            elif split[0] == 'üΩ¥':
                 ans = add_friend(split[1], split[2])
                 if ans:
                     query = encrypt_message('added', session_key)
@@ -434,17 +431,14 @@ def handle(client, addr, session_key):
                 client.send(query)
 
             elif split[0] == 'ƒ₧—©±°◙': #  client-server signal for uploading a file to the server
-                cur.execute('''SELECT name FROM not_users WHERE name = (?) ;''', (v[1],))
-                con.commit()
-                ans = cur.fetchall()[0][0]
-                cur.execute('''INSERT INTO not_files (filename, access, owner) VALUES (?, ?, ?);''' , (split[1], split[2], ans))
-                con.commit()
                 data = b''
                 while True:
                     buff = decrypt_message(client.recv(100), session_key)
                     if buff == '-1':
                         break
                     data += decrypt_file(client.recv(int(buff)), session_key)
+                cur.execute('''INSERT INTO not_files (filename, access, owner) VALUES (?, ?, ?);''' , (split[1], split[2], v[1]))
+                con.commit()
                 cur.execute('''UPDATE not_files SET data = (?) WHERE filename = (?);''', (data, split[1]))
                 con.commit()
                 query = encrypt_message('uploaded successfully©◙ƒ<>', session_key)
@@ -487,8 +481,8 @@ def handle(client, addr, session_key):
                         client.send(query)
                         time.sleep(0.0000000001)
                     os.remove('files\\temp' + split[1]+split[2])
-                except Exception as e:
-                    print(e)
+                except:
+                    pass
 
             elif split[0] == '▓quitf': # signal for quiting temporerly
                 query = encrypt_message('filing±°<>', session_key)
@@ -506,7 +500,7 @@ def handle(client, addr, session_key):
                 if split[1] == 'quit_pub':
                     public.remove((client, v[1], session_key))
 
-            else: #  if no signal was called then broadcast the message to the target
+            elif split[0] == '▓': #  if no signal was called then broadcast the message to the target
                 for cl in clients:
                     if cl[1] == split[1]:
                         broadcast(split[2], split[1], v[1], cl[3], client)
@@ -514,7 +508,8 @@ def handle(client, addr, session_key):
                         break
                 if not check:
                     broadcast(split[2], split[1], v[1], '', client)
-
+            else:
+                raise Exception()
         except:
             print(str(addr) + ' disconnected')
             for cl in clients:
