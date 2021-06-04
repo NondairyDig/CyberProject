@@ -232,10 +232,13 @@ def broadcast(message, target, current_name, conv, current=''):
         con.commit()
         for cl in public:
             if cl[0] is not current:
-                key = cl[2]
-                query = encrypt_message(message, key)
-                cl[0].send(encrypt_message(str(len(query)), key))
-                cl[0].send(query)
+                try:
+                    key = cl[2]
+                    query = encrypt_message(message, key)
+                    cl[0].send(encrypt_message(str(len(query)), key))
+                    cl[0].send(query)
+                except:
+                    pass
     else:
         cur.execute('''SELECT data FROM not_buffer WHERE target = (?) AND source = (?);''', (target, current_name))
         con.commit()
@@ -253,11 +256,14 @@ def broadcast(message, target, current_name, conv, current=''):
         else:
             for cl in clients:
                 if cl[0] is not current and cl[1] == target:
-                    key = cl[2]
-                    query = encrypt_message(message, key)
-                    cl[0].send(encrypt_message(str(len(query)), key))
-                    cl[0].send(query)
-                    break
+                    try:
+                        key = cl[2]
+                        query = encrypt_message(message, key)
+                        cl[0].send(encrypt_message(str(len(query)), key))
+                        cl[0].send(query)
+                        break
+                    except:
+                        pass
 
 
 def handle(client, addr, session_key):
