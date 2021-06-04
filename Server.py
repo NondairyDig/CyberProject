@@ -484,12 +484,12 @@ def handle(client, addr, session_key):
                 except:
                     pass
 
-            elif split[0] == '▓quitf': # signal for quiting temporerly
+            elif split[0] == '▓quitf': # signal for quiting temporerly end transmission
                 query = encrypt_message('filing±°<>', session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
 
-            elif split[0] == '▓quit': #  signal for quiting
+            elif split[0] == '▓quit': #  signal for quiting and ending constant transmission
                 query = encrypt_message('byebye±°<>', session_key) #  send encrypted signal for quitting
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
