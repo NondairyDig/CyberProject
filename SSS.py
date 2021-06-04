@@ -580,7 +580,8 @@ class MainWindow(Screen):
             error_t()
 
     def receive_main(self): #  a function called to a thread to recieve message while in chat
-        global special, special_vid
+        global special
+        tries = 0
         while True:
             try:
                 buff = decrypt_message(client.recv(100), skey)
@@ -606,14 +607,18 @@ class MainWindow(Screen):
                     t = self.tb.text
                     self.tb.text = t + k[0] + '\r\n'
 
-            except Exception as e:
-                self.pop.content.text = 'An error occurred please wait or restart the app'
-                self.pop.open()
-                time.sleep(1)
-                self.pop.dismiss()
-                sm.current = "friends"
-                sm.current_screen.load()
-                return
+            except:
+                tries += 1
+                if tries == 3:
+                    self.pop.content.text = 'An error occurred please wait or restart the app'
+                    self.pop.open()
+                    time.sleep(1)
+                    self.pop.dismiss()
+                    sm.current = "friends"
+                    sm.current_screen.load()
+                    return
+                else:
+                    continue
 
     def receive(self): # start receiving thread
         if target == 'public':
