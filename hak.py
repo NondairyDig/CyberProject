@@ -1,10 +1,9 @@
-import sqlite3
+"""import sqlite3
 
 con = sqlite3.connect('notthesecretdatabase.db')
 curs = con.cursor()
 
 
-"""
 curs.execute('''CREATE TABLE not_users (id INTEGER PRIMARY KEY AUTOINCREMENT, name text, email text, secretpassphrase text, friendlist text, friendrequests text);''')
 con.commit()
 
@@ -17,6 +16,4 @@ con.commit()
 curs.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);''', ('public', 'public', ''))
 con.commit()
 
-con.close()
-
-print('asdf'[:2])"""
+con.close()"""

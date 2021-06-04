@@ -28,7 +28,7 @@ import pyaudio
 import requests
 
 
-#to-do: Video Transfer(Re-Emmbed), SMTP server for email auth*, sign-up Security Patch.
+#to-do: Video Transfer(Re-Emmbed), SMTP server for email auth*.
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 skey = b''  # global variable for session key
@@ -67,29 +67,38 @@ def decrypt_file(encrypted_file, key): #  a function for decrypting a file( a me
     return decrypted_file
 
 def invalidUsername(): #  a function of notifieng if the username entered is not valid
-    pop = Popup(title='Invalid Username',
+    pop = Popup(title='Invalid Username', auto_dismiss = False,
                   content=Label(text='username needs to contain only numbers and letters if empty, please enter username.'),
                   size_hint=(None, None), size=(400, 200))
     pop.open()
+    time.sleep(1)
+    pop.dismiss()
 
 def invalidPassword(): #  a function of notifieng if the password entered is not valid
-    pop = Popup(title='Invalid Password',
+    pop = Popup(title='Invalid Password', auto_dismiss = False,
                   content=Label(text='Password needs to be at between 7 and 35 charachters long.'),
                   size_hint=(None, None), size=(400, 200))
 
     pop.open()
+    time.sleep(1)
+    pop.dismiss()
 
 def invalidEmail(): #  a function of what to do if the email entered is not valid
-    pop = Popup(title='Invalid Email',
+    pop = Popup(title='Invalid Email', auto_dismiss = False,
                   content=Label(text='Email Doesn\'t Exists'),
                   size_hint=(None, None), size=(400, 200))
     pop.open()
+    time.sleep(1)
+    pop.dismiss()
+    return
 
 def unmatchedPass():
-    pop = Popup(title='Invalid Email',
+    pop = Popup(title='Invalid Email', auto_dismiss = False,
                 content=Label(text='Passwords Are Not Matched'),
                 size_hint=(None, None), size=(400, 200))
     pop.open()
+    time.sleep(1)
+    pop.dismiss()
 
 def error():
     pop = Popup(title='Error', auto_dismiss = False,
@@ -127,11 +136,11 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_email = self.email.text
         s_password = self.password.text
         s_password_confirm = self.password_con.text
-        self.pop.open()
         Response = requests.get("https://isitarealemail.com/api/email/validate", params = {'email': s_email})
         EmailStatus = Response.json()['status']
         if EmailStatus != 'valid':
-            invalidEmail()
+            inv = threading.Thread(target=invalidEmail)
+            inv.start()
             self.email.text = ""
             self.password.text = ""
             self.username.text = ""

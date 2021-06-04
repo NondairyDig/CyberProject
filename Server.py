@@ -41,7 +41,6 @@ def logincheck(c): #  a function of checking the login (client socket)
     time.sleep(0.1) #  wait
     p = c.recv(64)  #  get encrypted password hash
     m = rsa.decrypt(u, priv).decode() #  decrypt email
-    m1 = ''
     if m.split('/\<>')[0] == 'e':
         m1 = m.split('/\<>')[1]
     else:
@@ -105,10 +104,22 @@ def signup(c):
     u = c.recv(64)
     p = c.recv(64)
     n = c.recv(64)
-    m1 = rsa.decrypt(u, priv)
-    m2 = rsa.decrypt(p, priv)
-    m3 = rsa.decrypt(n, priv).decode()
-    time.sleep(0.5)
+    me = rsa.decrypt(u, priv)
+    mp = rsa.decrypt(p, priv)
+    mu = rsa.decrypt(n, priv).decode()
+    if me.split(b'/\<>')[0] == b'e':
+        m1 = me.split(b'/\<>')[1]
+    else:
+        return False
+    if mp.split(b'/\<>')[0] == b'p':
+        m2 = mp.split(b'/\<>')[1]
+    else:
+        return False
+    if mu.split('/\<>')[0] == 'u':
+        m3 = mu.split('/\<>')[1]
+    else:
+        return False
+    time.sleep(0.2)
     nk = int(c.recv(154).decode())
     e = int(c.recv(5).decode())
     pub = rsa.key.PublicKey(nk, e)

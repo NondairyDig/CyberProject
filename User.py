@@ -50,17 +50,16 @@ class User:
         n = int(self.client.recv(154).decode())
         e = int(self.client.recv(5).decode())
         pub = rsa.key.PublicKey(n, e)
-        self.client.send(rsa.encrypt(self.email, pub))
-        self.client.send(rsa.encrypt(self.pass_, pub))
-        self.client.send(rsa.encrypt(self.nick.encode(), pub))
-        time.sleep(0.5)
+        self.client.send(rsa.encrypt(b'e/\<>' + self.email, pub))
+        self.client.send(rsa.encrypt(b'p/\<>' + self.pass_, pub))
+        self.client.send(rsa.encrypt(b'u/\<>' + self.nick.encode(), pub))
+        time.sleep(0.2)
         (pub, priv) = rsa.newkeys(511)
         self.client.send(str(pub.n).encode())
         self.client.send(str(pub.e).encode())
         a = self.client.recv(64)
         s = rsa.decrypt(a, priv).decode()
         if s == 'fialad':
-            print(s)
             return False
         else:
             return True
