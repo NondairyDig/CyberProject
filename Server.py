@@ -576,9 +576,10 @@ def voice(c):
                     main_vo_t = threading.Thread(target=recv_send, args=(c, tar, vkey, tarkey))
                     main_vo_t.start()
                     ayo = True
+                    break
         except:
             return
-        time.sleep(0.1)
+        time.sleep(0.5)
 
 
 def voice_channel():
