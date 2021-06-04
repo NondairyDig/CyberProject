@@ -257,6 +257,7 @@ def broadcast(message, target, current_name, conv, current=''):
                     query = encrypt_message(message, key)
                     cl[0].send(encrypt_message(str(len(query)), key))
                     cl[0].send(query)
+                    break
 
 
 def handle(client, addr, session_key):
