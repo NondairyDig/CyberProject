@@ -27,7 +27,7 @@ import os
 import pyaudio
 
 
-#to-do: Video Transfer(Re-Emmbed), SMTP server for email auth*.
+#to-do: Video Transfer(Re-Emmbed).
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 skey = b''  # global variable for session key
