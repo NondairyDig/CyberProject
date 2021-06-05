@@ -90,7 +90,6 @@ def invalidEmail(): #  a function of what to do if the email entered is not vali
     pop.open()
     time.sleep(1)
     pop.dismiss()
-    return
 
 def unmatchedPass():
     pop = Popup(title='Invalid Email', auto_dismiss = False,
@@ -136,16 +135,6 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_email = self.email.text
         s_password = self.password.text
         s_password_confirm = self.password_con.text
-        Response = requests.get("https://isitarealemail.com/api/email/validate", params = {'email': s_email})
-        EmailStatus = Response.json()['status']
-        if EmailStatus != 'valid':
-            inv = threading.Thread(target=invalidEmail)
-            inv.start()
-            self.email.text = ""
-            self.password.text = ""
-            self.username.text = ""
-            self.password_con.text = ""
-            return
 
         if len(s_username) < 1 or s_username.isalnum() == False or ' ' in s_username:
             invalidUsername()
@@ -233,7 +222,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
                 self.pop.dismiss()
                 return
         else:
-            self.pop.content.text = 'Email or Username already exists'
+            self.pop.content.text = 'Email Is Not Valid or Email or Username Already Exists'
             self.btn.disabled = False
             time.sleep(1)
             self.pop.dismiss()

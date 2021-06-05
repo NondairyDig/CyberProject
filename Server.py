@@ -1,11 +1,6 @@
-import threading
-import socket
-import rsa
-import time
 from cryptography.fernet import *
 from hashlib import sha3_256
-import sqlite3
-import os
+import smtplib, ssl, os, sqlite3, time, rsa, socket, threading, requests
 
 host = '192.168.1.254'
 clients = []
@@ -111,6 +106,8 @@ def signup(c):
         m1 = me.split(b'/\<>')[1]
     else:
         return False
+    Response = requests.get("https://isitarealemail.com/api/email/validate", params = {'email': m1.decode()})
+    EmailStatus = Response.json()['status']
     if mp.split(b'/\<>')[0] == b'p':
         m2 = mp.split(b'/\<>')[1]
     else:
@@ -123,6 +120,9 @@ def signup(c):
     nk = int(c.recv(154).decode())
     e = int(c.recv(5).decode())
     pub = rsa.key.PublicKey(nk, e)
+    if EmailStatus != 'valid':
+        c.send(rsa.encrypt('fialad'.encode(), pub))
+        return False
     cur.execute('''SELECT email FROM not_users WHERE email = (?);''', (str(m1.decode()),))
     con.commit()
     em = cur.fetchall()
@@ -138,7 +138,7 @@ def signup(c):
                 VALUES (?, ?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), '', ''))
     con.commit()
     c.send(rsa.encrypt('succep'.encode(), pub))
-    return True
+    return True, pub
 
 
 def get_friends(email):
@@ -622,6 +622,21 @@ def receive():
 
         thread = threading.Thread(target=handle, args=(c, addr, session_key))
         thread.start()
+"""
+port = 465  # For SSL
+smtp_server = "smtp.gmail.com"
+sender_email = "my@gmail.com"  # Enter your address
+receiver_email = "your@gmail.com"  # Enter receiver address
+password = input("Type your password and press enter: ")
+code = ''
+message = f\
+Subject: Secret Code
 
+Your Code: {code}
 
+context = ssl.create_default_context()
+with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+    server.login(sender_email, password)
+    server.sendmail(sender_email, receiver_email, message)
+"""
 receive()
