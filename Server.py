@@ -343,7 +343,7 @@ def handle(client, addr, session_key):
     except:
         return
     clients.append([client, v[1], session_key, ''])
-    time.sleep(0.3)
+    time.sleep(0.2)
     tries = 0
     while True:
         check = False
