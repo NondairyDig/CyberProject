@@ -33,6 +33,7 @@
                 id: username
                 multiline: False
                 font_size: (root.width**2 + root.height**2) / 17**4
+                input_filter: lambda text, from_undo: text[:35 - len(self.text)]
 
             Label:
                 size_hint: 0.5,0.1
@@ -47,6 +48,7 @@
                 id: email
                 multiline: False
                 font_size: (root.width**2 + root.height**2) / 17**4
+                input_filter: lambda text, from_undo: text[:60 - len(self.text)]
 
             Label:
                 size_hint: 0.5,0.1
@@ -62,6 +64,7 @@
                 multiline: False
                 password: True
                 font_size: (root.width**2 + root.height**2) / 17**4
+                input_filter: lambda text, from_undo: text[:35 - len(self.text)]
             Label:
                 size_hint: 0.5,0.1
                 pos_hint: {"x":0, "top":0.5}
@@ -76,6 +79,7 @@
                 multiline: False
                 password: True
                 font_size: (root.width**2 + root.height**2) / 17**4
+                input_filter: lambda text, from_undo: text[:35 - len(self.text)]
 
         Button:
             pos_hint:{"x":0.3,"y":0.25}
@@ -119,6 +123,7 @@
             write_tab: False
             pos_hint: {"x": 0.45 , "top":0.9}
             size_hint: 0.4, 0.08
+            input_filter: lambda text, from_undo: text[:60 - len(self.text)]
 
         Label:
             text:"Password: "
@@ -134,7 +139,7 @@
             write_tab: False
             pos_hint: {"x": 0.45, "top":0.7}
             size_hint: 0.4, 0.08
-
+            input_filter: lambda text, from_undo: text[:35 - len(self.text)]
         Label:
             text: "Remember Me"
             font_size: (root.width**2 + root.height**2) / 18**4
@@ -225,6 +230,7 @@
             font_size: (root.width**2 + root.height**2) / 17**4
             pos_hint: {"x": 0.35 , "top":0.5}
             size_hint: 0.29, 0.08
+            input_filter: lambda text, from_undo: text[:35 - len(self.text)]
         Button:
             text: "Send Friend Request"
             font_size: (root.width**2 + root.height**2) / 17**4
@@ -305,9 +311,9 @@
             size_hint:0.82, 0.15
             pos_hint:{"x":0.05, "y": 0.05}
             write_tab: False
+            input_filter: lambda text, from_undo: text[:999 - len(self.text)]
             on_text_validate:
                 root.write()
-            on_text: root.limit()
 
         Button:
             id:up
@@ -346,3 +352,27 @@
                 Label:
                     text:"File Repo:"
                     font_size: 14
+
+<AuthScreen>:
+    inpu: inpu
+
+    Button:
+        text:"Go Back"
+        on_release: root.goback()
+        pos_hint:{"x":0, "top": 1}
+        size_hint: 0.05, 0.1
+    Label:
+        text:"We Sent You a Code in The Email, Just To Verify(Check Your Inbox and Spam!):"
+        pos_hint:{"x":0.05, "top": 0.61}
+        size_hint: 1, 0.1
+    Button:
+        text:"OK"
+        pos_hint:{"x":0.5, "top": 0.5}
+        size_hint: 0.5,0.1
+        on_release: root.auth()
+    TextInput:
+        id:inpu
+        input_filter: lambda text, from_undo: text[:6 - len(self.text)]
+        pos_hint:{"x":0, "top": 0.5}
+        size_hint: 0.5,0.1
+        write_tab: False

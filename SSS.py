@@ -25,7 +25,6 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 import pyaudio
-import requests
 
 
 #to-do: Video Transfer(Re-Emmbed), SMTP server for email auth*.
@@ -61,7 +60,7 @@ def encrypt_file(file, key): #  a function for encrypting a file( a message in b
     return encrypted_file
 
 
-def decrypt_file(encrypted_file, key): #  a function for decrypting a file( a message in binary)
+def decrypt_file(encrypted_file, key): #  a function for decrypting a file(a message in binary)
     f = Fernet(key)
     decrypted_file = f.decrypt(encrypted_file)
     return decrypted_file
@@ -136,7 +135,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_password = self.password.text
         s_password_confirm = self.password_con.text
 
-        if len(s_username) < 1 or s_username.isalnum() == False or ' ' in s_username:
+        if len(s_username) < 1 or len(s_username) > 35 or s_username.isalnum() == False or ' ' in s_username:
             invalidUsername()
             self.email.text = ""
             self.password.text = ""
@@ -205,9 +204,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             if skey and skey != 'imp':
                 self.btn.disabled = False
                 self.pop.dismiss()
-                client.send('im ready'.encode())
-                sm.current = 'friends'
-                sm.current_screen.load()
+                sm.current = 'auth'
                 return
             elif skey == 'imp':
                 self.btn.disabled = False
@@ -314,10 +311,8 @@ class LoginWindow(Screen):
                 f.write(encrypt_message(str('YEs'.encode()) + '  ' + str(e) + '  ' + str(p), file_key))
                 f.close()
             self.btn.disabled = False
-            client.send('im ready'.encode())
             self.pop.dismiss()
-            sm.current = 'friends'
-            sm.current_screen.load()
+            sm.current = 'auth'
             return
         elif skey == 'imp':
             self.btn.disabled = False
@@ -506,12 +501,6 @@ class MainWindow(Screen):
         elif len(str(self.mtb.text)) < 1000:
             t = self.tb.text
             self.tb.text = t + '\r\nCant be empty or longer than 999 chars'
-
-    def limit(self): #  called when text is inputed to check if the message is not greater then 1000 words
-        if len(str(self.mtb.text)) > 1000:
-            t = self.mtb.text[:999]
-            self.mtb.text = ''
-            self.mtb.text = t
 
     def send_file(self, f, t): # a functions called to a thread to upload a file to the server
         try:
@@ -915,6 +904,26 @@ class Requests(Screen):
         except:
             error_t()
 
+class AuthScreen(Screen):
+    inpu = ObjectProperty(None)
+    pop = Popup(title='Status',auto_dismiss= False, # create a popup
+        content=Label(text='Authinticating...'),
+        size_hint=(None, None), size=(250, 100))
+
+    def auth(self):
+        global client, skey
+        client.send(encrypt_message(str(self.inpu.text), skey))
+        ans = decrypt_message(client.recv(100), skey)
+        print(ans)
+        if ans == 'auth' + user.nick[:5]:
+            client.send('im ready'.encode())
+            sm.current = 'friends'
+            sm.current_screen.load()
+        else:
+            client.send('im falid'.encode())
+            sm.current = 'login'
+            return
+
 
 class WindowManager(ScreenManager):
     pass
@@ -924,7 +933,7 @@ class WindowManager(ScreenManager):
 kv = Builder.load_file("SSS.kv")
 sm = WindowManager()
 
-screens = [Requests(name="requests") ,AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
+screens = [AuthScreen(name="auth"), Requests(name="requests") ,AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
 for screen in screens:
     sm.add_widget(screen)
 

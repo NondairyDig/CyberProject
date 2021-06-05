@@ -1,6 +1,6 @@
 from cryptography.fernet import *
 from hashlib import sha3_256
-import smtplib, ssl, os, sqlite3, time, rsa, socket, threading, requests
+import smtplib, ssl, os, sqlite3, time, rsa, socket, threading, requests, random
 
 host = '192.168.1.254'
 clients = []
@@ -9,6 +9,12 @@ con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
 cur = con.cursor()
 voice_cl = []
 video_cl = []
+port_email = 465  # For SSL
+smtp_server = "smtp.gmail.com"
+sender_email = "SecureShareSystem@gmail.com"  # Enter your address
+receiver_email = "your@gmail.com"  # Enter receiver address
+password = 'OdinThor12'
+context = ssl.create_default_context()
 
 
 def verify(c, addr): #  a function to verify the connection between the server and client (client socket, client address)
@@ -39,12 +45,12 @@ def logincheck(c): #  a function of checking the login (client socket)
     if m.split('/\<>')[0] == 'e':
         m1 = m.split('/\<>')[1]
     else:
-        return False, False, False, False
+        return False, False, False, False, False
     m = rsa.decrypt(p, priv) #  decrypt password hash
     if m.split(b'/\<>')[0] == b'p':
         m2 = m.split(b'/\<>')[1]
     else:
-        return False, False, False, False
+        return False, False, False, False, False
     p = sha3_256() #  initialize hashing module
     p.update(m2 + m1.encode()) #  insert password hash and salt
     pf = p.digest() #  hash
@@ -52,14 +58,14 @@ def logincheck(c): #  a function of checking the login (client socket)
     con.commit() #  commit database command
     res = cur.fetchall() # get results from dtabase command
     if res == []: #  if no match found
-        return False, False, False, False #  return False 
+        return False, False, False, False, False #  return False 
     if res[0][0] == str(m1): #  if email matches database records
         for cl in clients:
             if cl[1] == res[0][2]:
-                return False, 'imp', False, False
+                return False, 'imp', False, False, False
         friend_list = res[0][1] #  if password matches database records
-        return res[0][2], pf, True, friend_list # return username, password, Authurization status, friend list
-    return False, False, False, False #  return False 
+        return res[0][2], pf, True, friend_list, m1 # return username, password, Authurization status, friend list
+    return False, False, False, False, False #  return False 
 
 
 def login(c, sesk): #  a function to initialize the login process
@@ -69,6 +75,7 @@ def login(c, sesk): #  a function to initialize the login process
     nname = ayy[0] #  the username returned
     auth = ayy[2]  #  if authorized returned
     f_list = ayy[3] #  friendlist returned
+    email = ayy[4]
     n = int(c.recv(154).decode()) #  get the public key part 
     e = int(c.recv(5).decode()) #  get the public key part
     publ = rsa.key.PublicKey(n, e) #  assemble the public key
@@ -85,7 +92,7 @@ def login(c, sesk): #  a function to initialize the login process
         time.sleep(0.1) # wait
         nicknam = rsa.encrypt(nname.encode(), publ) #  send nickname from database
         c.send(nicknam) # send
-        return True, nname, f_list # return authorization confirmation, nickname, friendlist
+        return True, nname, email # return authorization confirmation, nickname, friendlist
     else: #  if log-in not authorized
         log = rsa.encrypt((b'login failed'), publ) #  send that log-in was not authorized
         c.send(log) # send
@@ -295,8 +302,10 @@ def handle(client, addr, session_key):
             m = client.recv(1).decode()
             if m == 'L':
                 v = login(client, session_key)
-            if v[0]:
-                pass
+                if v[0]:
+                    pass
+                else:
+                    return
             else:
                 return
         else:
@@ -309,7 +318,29 @@ def handle(client, addr, session_key):
             return
     else:
         return
-    client.recv(1024)
+    code = str(random.randint(100, 999)) + str(random.randint(100, 999))
+    message = f'''\
+        Subject: Secret Code
+
+        Your Code: {code}'''
+    with smtplib.SMTP_SSL(smtp_server, port_email, context=context) as server:
+        server.connect(smtp_server, port_email)
+        server.ehlo()
+        server.login(sender_email, password)
+        server.sendmail(sender_email, v[2], message)
+    try:
+        secret_code = decrypt_message(client.recv(100), session_key)
+        print(code + ' ' + secret_code)
+    except:
+        return
+    if code != secret_code:
+        client.send(encrypt_message('why', session_key))
+        return
+    else:
+        client.send(encrypt_message('auth' + v[1][:5], session_key))
+    ans = client.recv(8).decode()
+    if ans != 'im ready':
+        return
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
     tries = 0
@@ -622,21 +653,5 @@ def receive():
 
         thread = threading.Thread(target=handle, args=(c, addr, session_key))
         thread.start()
-"""
-port = 465  # For SSL
-smtp_server = "smtp.gmail.com"
-sender_email = "my@gmail.com"  # Enter your address
-receiver_email = "your@gmail.com"  # Enter receiver address
-password = input("Type your password and press enter: ")
-code = ''
-message = f\
-Subject: Secret Code
 
-Your Code: {code}
-
-context = ssl.create_default_context()
-with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-    server.login(sender_email, password)
-    server.sendmail(sender_email, receiver_email, message)
-"""
 receive()
