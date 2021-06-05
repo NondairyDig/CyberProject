@@ -906,22 +906,42 @@ class Requests(Screen):
 
 class AuthScreen(Screen):
     inpu = ObjectProperty(None)
+    gb = ObjectProperty(None)
+    bt = ObjectProperty(None)
     pop = Popup(title='Status',auto_dismiss= False, # create a popup
         content=Label(text='Authinticating...'),
         size_hint=(None, None), size=(250, 100))
 
     def auth(self):
-        global client, skey
-        client.send(encrypt_message(str(self.inpu.text), skey))
-        ans = decrypt_message(client.recv(100), skey)
-        print(ans)
-        if ans == 'auth' + user.nick[:5]:
-            client.send(encrypt_message('im ready', skey))
-            sm.current = 'friends'
-            sm.current_screen.load()
-            return
-        else:
-            client.send(encrypt_message('im falid', skey))
+        t = threading.Thread(target=self.auth_main)
+        t.start()
+
+    def auth_main(self):
+        try:
+            global client, skey
+            self.bt.disabled = True
+            self.gb.disabled = True
+            self.pop.open()
+            client.send(encrypt_message(str(self.inpu.text), skey))
+            ans = decrypt_message(client.recv(100), skey)
+            if ans == 'auth' + user.nick[:5]:
+                client.send(encrypt_message('im ready', skey))
+                self.bt.disabled = False
+                self.gb.disabled = False
+                self.pop.dismiss()
+                sm.current = 'friends'
+                sm.current_screen.load()
+                return
+            else:
+                client.send(encrypt_message('im falid', skey))
+                self.pop.content.text = 'Auth Failed'
+                time.sleep(1)
+                self.pop.dismiss()
+                self.bt.disabled = False
+                self.gb.disabled = False
+                sm.current = 'login'
+                return
+        except:
             sm.current = 'login'
             return
 
