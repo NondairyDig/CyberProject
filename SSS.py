@@ -916,13 +916,16 @@ class AuthScreen(Screen):
         ans = decrypt_message(client.recv(100), skey)
         print(ans)
         if ans == 'auth' + user.nick[:5]:
-            client.send('im ready'.encode())
+            client.send(encrypt_message('im ready', skey))
             sm.current = 'friends'
             sm.current_screen.load()
         else:
-            client.send('im falid'.encode())
+            client.send(encrypt_message('im falid', skey))
             sm.current = 'login'
             return
+    def goback(self):
+        client.send(encrypt_message('000000', skey))
+        sm.current = 'login'
 
 
 class WindowManager(ScreenManager):

@@ -330,16 +330,17 @@ def handle(client, addr, session_key):
         server.sendmail(sender_email, v[2], message)
     try:
         secret_code = decrypt_message(client.recv(100), session_key)
-        print(code + ' ' + secret_code)
+        if secret_code == '000000':
+            return
+        if code != secret_code:
+            client.send(encrypt_message('why', session_key))
+            return
+        else:
+            client.send(encrypt_message('auth' + v[1][:5], session_key))
+        ans = decrypt_message(client.recv(100), session_key)
+        if ans != 'im ready':
+            return
     except:
-        return
-    if code != secret_code:
-        client.send(encrypt_message('why', session_key))
-        return
-    else:
-        client.send(encrypt_message('auth' + v[1][:5], session_key))
-    ans = client.recv(8).decode()
-    if ans != 'im ready':
         return
     clients.append([client, v[1], session_key, ''])
     time.sleep(0.3)
