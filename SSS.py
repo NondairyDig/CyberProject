@@ -364,6 +364,9 @@ class MainWindow(Screen):
             pathname = filedialog.asksaveasfilename(initialfile=b.text) #  get save path
             if pathname == '':
                 return
+            query = encrypt_message(f'Ω¥•¼<>', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
             query = encrypt_message('▓quitf', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
@@ -576,6 +579,9 @@ class MainWindow(Screen):
             filename = filedialog.askopenfilename() #  get picked file path
             if filename != '':
                 if int(os.path.getsize(filename)) < 100000000: #  limit file size to 10 MB
+                    query = encrypt_message(f'Ω¥•¼<>', skey)
+                    client.send(encrypt_message(str(len(query)), skey))
+                    client.send(query)
                     query = encrypt_message('▓quitf', skey)
                     client.send(encrypt_message(str(len(query)), skey))
                     client.send(query)
@@ -599,17 +605,11 @@ class MainWindow(Screen):
                 if k[0] == 'byebye±°':
                     special.close()
                     special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    query = encrypt_message(f'Ω¥•¼<>', skey)
-                    client.send(encrypt_message(str(len(query)), skey))
-                    client.send(query)
                     sm.current = "friends"
                     sm.current_screen.load()
                     return
 
                 if k[0] == 'filing±°':
-                    query = encrypt_message(f'Ω¥•¼<>', skey)
-                    client.send(encrypt_message(str(len(query)), skey))
-                    client.send(query)
                     return
 
                 else:
@@ -951,6 +951,9 @@ if __name__ == "__main__":
     SSS().run() #  run GUI
     try:
         global target
+        query = encrypt_message(f'Ω¥•¼<>', skey)
+        client.send(encrypt_message(str(len(query)), skey))
+        client.send(query)
         if target == 'public':
             query = encrypt_message('t◙<>quit_pub', skey)
             client.send(encrypt_message(str(len(query)), skey))

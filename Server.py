@@ -385,6 +385,7 @@ def handle(client, addr, session_key):
                 for cl in clients:
                     if cl[1] == v[1]:
                         cl[3] = split[1]
+                        break
 
             elif split[0] == 'éè╣': #  client-sserver signal for handling friend requests
                 if split[1] == 'accept':
@@ -442,8 +443,10 @@ def handle(client, addr, session_key):
                         for cl in clients:
                             if f == cl[1]:
                                 friendlist += f + '(online)-'
+                                break
                             else:
                                 friendlist += f + '(offline)-'
+                                break
                 query = encrypt_message(friendlist, session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
@@ -533,6 +536,7 @@ def handle(client, addr, session_key):
             for cl in clients:
                 if cl[0] == client:
                     clients.remove(cl)
+                    break
             try:
                 public.remove((client, v[1], session_key))
             except:
