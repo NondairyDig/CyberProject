@@ -355,8 +355,11 @@
 
 <AuthScreen>:
     inpu: inpu
+    gb:gb
+    bt:bt
 
     Button:
+        id:gb
         text:"Go Back"
         on_release: root.goback()
         pos_hint:{"x":0, "top": 1}
@@ -366,6 +369,7 @@
         pos_hint:{"x":0, "top": 0.61}
         size_hint: 0.3, 0.1
     Button:
+        id:bt
         text:"OK"
         pos_hint:{"x":0.5, "top": 0.5}
         size_hint: 0.5,0.1

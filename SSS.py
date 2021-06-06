@@ -908,13 +908,13 @@ class AuthScreen(Screen):
     inpu = ObjectProperty(None)
     gb = ObjectProperty(None)
     bt = ObjectProperty(None)
-    pop = Popup(title='Status',auto_dismiss= False, # create a popup
+    pop = Popup(title='Status', auto_dismiss = False, # create a popup
         content=Label(text='Authinticating...'),
         size_hint=(None, None), size=(250, 100))
 
     def auth(self):
-        t = threading.Thread(target=self.auth_main)
-        t.start()
+        auth_t = threading.Thread(target=self.auth_main)
+        auth_t.start()
 
     def auth_main(self):
         try:
@@ -959,7 +959,7 @@ class WindowManager(ScreenManager):
 kv = Builder.load_file("SSS.kv")
 sm = WindowManager()
 
-screens = [AuthScreen(name="auth"), Requests(name="requests") ,AddFriend(name="addfriend"), LoginWindow(name="login"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
+screens = [LoginWindow(name="login"), AuthScreen(name="auth"), Requests(name="requests") ,AddFriend(name="addfriend"), CreateAccountWindow(name="create"),MainWindow(name="main"), FriendsScreen(name="friends"), RemoveFriend(name="remove")]
 for screen in screens:
     sm.add_widget(screen)
 
