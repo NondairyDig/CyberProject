@@ -565,16 +565,20 @@ def handle(client, addr, session_key):
                 raise Exception()
         except:
             print(str(addr) + ' disconnected')
-            for cl in clients:
-                if cl[0] == client:
-                    clients.remove(cl)
-                    break
             try:
-                public.remove((client, v[1], session_key))
+                for cl in clients:
+                    if cl[0] == client:
+                        clients.remove(cl)
+                        break
+                try:
+                    public.remove((client, v[1], session_key))
+                except:
+                    pass
+                client.close()
+                break
             except:
-                pass
-            client.close()
-            break
+                client.close()
+                break
 
 
 def recv_send(c, tar, vkey, tarkey):

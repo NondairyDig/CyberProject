@@ -18,13 +18,13 @@
                 text: "Create an Account"
                 size_hint: 0.8, 0.1
                 pos_hint: {"x":0.1, "top":1}
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
 
             Label:
                 size_hint: 0.5,0.1
                 pos_hint: {"x":0, "top":0.8}
                 text: "Username: "
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.8}
@@ -32,14 +32,14 @@
                 write_tab: False
                 id: username
                 multiline: False
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 input_filter: lambda text, from_undo: text[:35 - len(self.text)]
 
             Label:
                 size_hint: 0.5,0.1
                 pos_hint: {"x":0, "top":0.7}
                 text: "Email: "
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.7}
@@ -47,14 +47,14 @@
                 write_tab: False
                 id: email
                 multiline: False
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 input_filter: lambda text, from_undo: text[:60 - len(self.text)]
 
             Label:
                 size_hint: 0.5,0.1
                 pos_hint: {"x":0, "top":0.6}
                 text: "Password: "
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.6}
@@ -63,13 +63,13 @@
                 write_tab: False
                 multiline: False
                 password: True
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 input_filter: lambda text, from_undo: text[:35 - len(self.text)]
             Label:
                 size_hint: 0.5,0.1
                 pos_hint: {"x":0, "top":0.5}
                 text: "Confirm Password: "
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
 
             TextInput:
                 pos_hint: {"x":0.5, "top":0.5}
@@ -78,13 +78,13 @@
                 write_tab: False
                 multiline: False
                 password: True
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 input_filter: lambda text, from_undo: text[:35 - len(self.text)]
 
         Button:
             pos_hint:{"x":0.3,"y":0.25}
             size_hint: 0.4, 0.1
-            font_size: (root.width**2 + root.height**2) / 19**4
+            font_size: 16
             text: "Already have an Account? Log In"
             on_release:
                 root.manager.transition.direction = "right"
@@ -95,7 +95,7 @@
             pos_hint:{"x":0.2,"y":0.05}
             size_hint: 0.6, 0.15
             text: "Sign-up"
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             on_release:
                 root.submit()
 
@@ -112,13 +112,13 @@
 
         Label:
             text:"Email: "
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             pos_hint: {"x":0.1, "top":0.9}
             size_hint: 0.35, 0.15
 
         TextInput:
             id: email
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             multiline: False
             write_tab: False
             pos_hint: {"x": 0.45 , "top":0.9}
@@ -127,13 +127,13 @@
 
         Label:
             text:"Password: "
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             pos_hint: {"x":0.1, "top":0.7}
             size_hint: 0.35, 0.15
 
         TextInput:
             id: password
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             multiline: False
             password: True
             write_tab: False
@@ -142,13 +142,13 @@
             input_filter: lambda text, from_undo: text[:35 - len(self.text)]
         Label:
             text: "Remember Me"
-            font_size: (root.width**2 + root.height**2) / 18**4
+            font_size: 16
             pos_hint: {"x": 0.2, "top":0.5}
             size_hint: 0.45, 0.05
 
         CheckBox:
             id: cb
-            font_size: (root.width**2 + root.height**2) / 18**4
+            font_size: 16
             pos_hint: {"x": 0.6, "top":0.5}
             size_hint: 0.05, 0.05
 
@@ -157,7 +157,7 @@
             id: btn
             pos_hint:{"x":0.2,"y":0.05}
             size_hint: 0.6, 0.2
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             text: "Log-in"
             on_release:
                 root.loginBtn()
@@ -165,7 +165,7 @@
         Button:
             pos_hint:{"x":0.3,"y":0.3}
             size_hint: 0.4, 0.1
-            font_size: (root.width**2 + root.height**2) / 19**4
+            font_size: 16
             text: "Don't have an Account? Create One"
             on_release:
                 root.manager.transition.direction = "left"
@@ -221,25 +221,25 @@
     FloatLayout:
         Label:
             text:"Enter friend's username: "
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             pos_hint: {"x":0.05, "top":0.5}
             size_hint: 0.29, 0.1
         TextInput:
             id:friend
             multiline: False
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             pos_hint: {"x": 0.35 , "top":0.5}
             size_hint: 0.29, 0.08
             input_filter: lambda text, from_undo: text[:35 - len(self.text)]
         Button:
             text: "Send Friend Request"
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             pos_hint: {"x": 0.65 , "top":0.5}
             size_hint: 0.29, 0.08
             on_release: root.add_friend()
         Button:
             text: "Go Back"
-            font_size: (root.width**2 + root.height**2) / 17**4
+            font_size: 16
             pos_hint: {"x": 0 , "top":1}
             size_hint: 0.08, 0.08
             on_release: root.goBack()
@@ -262,7 +262,7 @@
                 size_hint: 0.08, 0.08
                 on_release: root.back()
             Label:
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 text:"Click on a friend to remove:"
 <Requests>:
     bx:bx
@@ -282,7 +282,7 @@
                 size_hint: 0.08, 0.08
                 on_release: root.back()
             Label:
-                font_size: (root.width**2 + root.height**2) / 17**4
+                font_size: 16
                 text:"Select a friend you want to add/reject:"
 
 

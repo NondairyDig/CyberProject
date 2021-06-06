@@ -27,7 +27,7 @@ import os
 import pyaudio
 
 
-#to-do: Video Transfer(Re-Emmbed).
+#to-do: Video Transfer(Re-Emmbed), Notifications.
 # ƒ₧—éè╣¶█©±°◙§≡üΩ¥•¼·ëçŒ▓ⁿø∞ö™
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable for socket
 skey = b''  # global variable for session key
@@ -70,7 +70,7 @@ def invalidUsername(): #  a function of notifieng if the username entered is not
                   content=Label(text='username needs to contain only numbers and letters if empty, please enter username.'),
                   size_hint=(None, None), size=(400, 200))
     pop.open()
-    time.sleep(1)
+    time.sleep(2)
     pop.dismiss()
 
 def invalidPassword(): #  a function of notifieng if the password entered is not valid
@@ -79,7 +79,7 @@ def invalidPassword(): #  a function of notifieng if the password entered is not
                   size_hint=(None, None), size=(400, 200))
 
     pop.open()
-    time.sleep(1)
+    time.sleep(2)
     pop.dismiss()
 
 def invalidEmail(): #  a function of what to do if the email entered is not valid
@@ -87,7 +87,7 @@ def invalidEmail(): #  a function of what to do if the email entered is not vali
                   content=Label(text='Email Doesn\'t Exists'),
                   size_hint=(None, None), size=(400, 200))
     pop.open()
-    time.sleep(1)
+    time.sleep(2)
     pop.dismiss()
 
 def unmatchedPass():
@@ -95,7 +95,7 @@ def unmatchedPass():
                 content=Label(text='Passwords Are Not Matched'),
                 size_hint=(None, None), size=(400, 200))
     pop.open()
-    time.sleep(1)
+    time.sleep(2)
     pop.dismiss()
 
 def error():
@@ -103,7 +103,7 @@ def error():
                   content=Label(text='There Was a problem connecting to server. try to refresh or restart'),
                   size_hint=(None, None), size=(500, 200))
     pop.open()
-    time.sleep(1)
+    time.sleep(2)
     pop.dismiss()
 
 def largeFile():
@@ -111,7 +111,7 @@ def largeFile():
                 content=Label(text='File is to large and must be under 10MB'),
                 size_hint=(None, None), size=(500, 200))
     pop.open()
-    time.sleep(1)
+    time.sleep(2)
     pop.dismiss()
 
 def error_t():
@@ -135,7 +135,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         s_password = self.password.text
         s_password_confirm = self.password_con.text
 
-        if len(s_username) < 1 or len(s_username) > 35 or s_username.isalnum() == False or ' ' in s_username:
+        if len(s_username) < 4 or len(s_username) > 36 or s_username.isalnum() == False or ' ' in s_username:
             invalidUsername()
             self.email.text = ""
             self.password.text = ""
@@ -183,7 +183,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         except:
             self.btn.disabled = False
             self.pop.content.text = 'Couldn\'t connect to server'
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             return
         global user
@@ -194,7 +194,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
         except:
             self.btn.disabled = False
             self.pop.content.text = 'could not verify'
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             return
         self.pop.content.text = 'Signing Up...' 
@@ -209,19 +209,19 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
             elif skey == 'imp':
                 self.btn.disabled = False
                 self.pop.content.text = 'Account Already Logged In'
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 return
             else:
                 self.btn.disabled = False
                 self.pop.content.text = 'There was a problem logging in please try to logging in with your credentials or signing up again'
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 return
         else:
             self.pop.content.text = 'Email Is Not Valid or Email or Username Already Exists'
             self.btn.disabled = False
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             return
     
@@ -288,7 +288,7 @@ class LoginWindow(Screen):
         except:
             self.btn.disabled = False
             self.pop.content.text = 'Couldn\'t connect to server'
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             return
         global user
@@ -299,7 +299,7 @@ class LoginWindow(Screen):
         except:
             self.pop.content.text = 'could not verify'
             self.btn.disabled = False
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             return
         self.pop.content.text = 'Logging In...'
@@ -317,7 +317,7 @@ class LoginWindow(Screen):
         elif skey == 'imp':
             self.btn.disabled = False
             self.pop.content.text = 'Account Already Logged In'
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             f = open('UserData.txt', 'wb')
             f.write(b'')
@@ -326,7 +326,7 @@ class LoginWindow(Screen):
         else:
             self.btn.disabled = False
             self.pop.content.text = 'Wrong login'
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             return
 
@@ -380,7 +380,7 @@ class MainWindow(Screen):
                 file.write(data)
             self.pop.content.text = "File Received"
             file.close()
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             self.load()
             query = encrypt_message(f'Ω¥•¼<>{target}', skey)
@@ -391,7 +391,7 @@ class MainWindow(Screen):
         except:
             self.pop.content.text = 'An error occurd please try again or re enter the room'
             self.pop.open()
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             self.load()
             query = encrypt_message(f'Ω¥•¼<>{target}', skey)
@@ -409,7 +409,7 @@ class MainWindow(Screen):
                 self.vo.disabled = False
                 self.pop.open()
                 self.pop.content.text = "Disconnected from voice"
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 return
 
@@ -432,6 +432,10 @@ class MainWindow(Screen):
             special.send(encrypt_message(str(len(query)), skey))
             special.send(query)
             an = special.recv(5)
+            global target
+            query = encrypt_message('▓<>' + target + '<>' + f'{user.nick} Joined The Voice Channel!', skey)
+            client.send(encrypt_message(str(len(query)), skey))
+            client.send(query)
             if an != 'start'.encode():
                 return
             time.sleep(0.1)
@@ -445,7 +449,7 @@ class MainWindow(Screen):
             self.vo.disabled = False
             self.pop.open()
             self.pop.content.text = "Disconnected from voice"
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
         return
 
@@ -526,7 +530,7 @@ class MainWindow(Screen):
                 if ans == 'uploaded successfully©◙ƒ<>':
                         self.pop.content.text = 'Uploaded file'
                         self.pop.open()
-                        time.sleep(1)
+                        time.sleep(2)
                         self.pop.dismiss()
                         self.load()
                         query = encrypt_message(f'Ω¥•¼<>{target}', skey)
@@ -542,7 +546,7 @@ class MainWindow(Screen):
         except:
             self.pop.content.text = 'Uploading file failed'
             self.pop.open()
-            time.sleep(1)
+            time.sleep(2)
             self.pop.dismiss()
             self.load()
             query = encrypt_message(f'Ω¥•¼<>{target}', skey)
@@ -599,7 +603,7 @@ class MainWindow(Screen):
                 if tries == 3:
                     self.pop.content.text = 'An error occurred please wait or restart the app'
                     self.pop.open()
-                    time.sleep(1)
+                    time.sleep(2)
                     self.pop.dismiss()
                     sm.current = "friends"
                     sm.current_screen.load()
@@ -756,14 +760,14 @@ class AddFriend(Screen):
             ans = decrypt_message(client.recv(int(length)), skey)
             if ans == 'added':
                 self.pop.content.text = 'Friend request sent successfully'
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 sm.current = "friends"
                 sm.current_screen.load()
             else:
                 self.pop.content.text = 'No such user found'
                 self.pop.open()
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
             return
         except:
@@ -827,7 +831,7 @@ class RemoveFriend(Screen):
                 self.pop.content.text = 'Removed friend successfully'
                 self.pop.open()
                 self.bx.remove_widget(b)
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 sm.current = "friends"
                 sm.current_screen.load()
@@ -835,7 +839,7 @@ class RemoveFriend(Screen):
                 self.pop.content.text = 'An error occurred'
                 self.pop.open()
 
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 sm.current = "friends"
                 sm.current_screen.load()
@@ -935,7 +939,7 @@ class AuthScreen(Screen):
             else:
                 client.send(encrypt_message('im falid', skey))
                 self.pop.content.text = 'Auth Failed'
-                time.sleep(1)
+                time.sleep(2)
                 self.pop.dismiss()
                 self.bt.disabled = False
                 self.gb.disabled = False
