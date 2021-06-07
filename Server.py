@@ -1,3 +1,4 @@
+from tkinter import EXCEPTION
 from cryptography.fernet import *
 from hashlib import sha3_256
 import smtplib, ssl, os, sqlite3, time, rsa, socket, threading, requests, random
@@ -141,8 +142,8 @@ def signup(c):
         return False
     p = sha3_256()
     p.update(m2 + m1)
-    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist, friendrequests)
-                VALUES (?, ?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), '', ''))
+    cur.execute('''INSERT INTO not_users (name, email, secretpassphrase, friendlist, friendrequests, notifications)
+                VALUES (?, ?, ?, ?, ?, ?);''', (str(m3), str(m1.decode()), str(p.digest()), '', '', ''))
     con.commit()
     c.send(rsa.encrypt('succep'.encode(), pub))
     return True, pub
@@ -270,7 +271,14 @@ def broadcast(message, target, current_name, conv, current=''):
         cur.execute('''UPDATE not_buffer SET data = (?) WHERE target = (?) AND source = (?);''', (new_data, current_name, target))
         con.commit()
         if conv != current_name:
-            return
+            cur.execute('''SELECT notifications FROM not_users WHERE name = (?);''', (target,))
+            con.commit()
+            if current_name in cur.fetchall()[0][0]:
+                return
+            else:
+                cur.execute('''UPDATE not_users SET notifications = notifications || (?) WHERE name = (?);''', (str(current_name + '-'), target))
+                con.commit()
+                return
         else:
             for cl in clients:
                 if cl[0] is not current and cl[1] == target:
@@ -418,6 +426,14 @@ def handle(client, addr, session_key):
                     if cl[1] == v[1]:
                         cl[3] = split[1]
                         break
+                cur.execute('''SELECT notifications FROM not_users WHERE name = (?);''', (v[1],))
+                con.commit()
+                notificationss = cur.fetchall()[0][0]
+                if split[1] in notificationss:
+                    notificationsss = notificationss.replace(split[1] + '-', '')
+                    cur.execute('''UPDATE not_users SET notifications = (?) WHERE name = (?);''', (notificationsss, v[1]))
+                else:
+                    pass    
 
             elif split[0] == 'éè╣': #  client-sserver signal for handling friend requests
                 if split[1] == 'accept':
@@ -471,14 +487,34 @@ def handle(client, addr, session_key):
                 else:
                     status = friendlist.split('-')
                     friendlist = ''
+                    cur.execute('''SELECT notifications FROM not_users WHERE email = (?);''', (split[1],))
+                    con.commit()
+                    notifications = cur.fetchall()[0][0].split('-')
+                    on = False
+                    notif = False
                     for f in status:
+                        on = False
+                        notif = False
                         for cl in clients:
                             if f == cl[1]:
-                                friendlist += f + '(online)-'
+                                on = True
                                 break
-                            else:
-                                friendlist += f + '(offline)-'
+                        for nf in notifications:
+                            if nf == f:
+                                notif = True
                                 break
+                        if not on and notif:
+                            friendlist += f + '(offline)New!-'
+                            break
+                        if not on and not notif:
+                            friendlist += f + '(offline)-'
+                            break
+                        if on and notif:
+                            friendlist += f + '(online)New!-'
+                            break
+                        else:
+                            friendlist += f + '(online)-'
+                            break
                 query = encrypt_message(friendlist, session_key)
                 client.send(encrypt_message(str(len(query)), session_key))
                 client.send(query)
@@ -563,7 +599,8 @@ def handle(client, addr, session_key):
                     broadcast(split[2], split[1], v[1], '', client)
             else:
                 raise Exception()
-        except:
+        except Exception as e:
+            print(e)
             print(str(addr) + ' disconnected')
             try:
                 for cl in clients:
