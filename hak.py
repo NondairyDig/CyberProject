@@ -1,4 +1,6 @@
-import sqlite3
+import sqlite3, os
+
+os.remove('notthesecretdatabase.db')
 
 con = sqlite3.connect('notthesecretdatabase.db')
 curs = con.cursor()
