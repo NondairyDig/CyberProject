@@ -599,8 +599,7 @@ def handle(client, addr, session_key):
                     broadcast(split[2], split[1], v[1], '', client)
             else:
                 raise Exception()
-        except Exception as e:
-            print(e)
+        except:
             print(str(addr) + ' disconnected')
             try:
                 for cl in clients:

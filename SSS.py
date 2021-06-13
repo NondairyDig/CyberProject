@@ -132,7 +132,7 @@ class CreateAccountWindow(Screen): # a screen class of the sign up screen(needed
 
     def submit(self): #  a function that is called by a submit/sign-up button to check the validty the entered information
         s_username = self.username.text
-        s_email = self.email.text
+        s_email = self.email.text.lower()
         s_password = self.password.text
         s_password_confirm = self.password_con.text
 
@@ -261,7 +261,7 @@ class LoginWindow(Screen):
         sm.current = "create"
     
     def loginBtn(self): # cerdentials checking
-        s_email = self.email.text
+        s_email = self.email.text.lower()
         s_password = self.password.text
         if len(s_email) < 8 or not re.search('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$', str(s_email)) or not s_email.split('@')[0].isalnum() or not s_email.split('@')[1].split('.')[0].isalnum() or not s_email.split('@')[1].split('.')[1].isalnum() or ' ' in s_email or s_email.count('@') > 1 or s_email.count('.') > 1:
             invalidEmail()
