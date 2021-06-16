@@ -328,6 +328,8 @@ def handle(client, addr, session_key):
         return
     code = str(random.randint(100, 999)) + str(random.randint(100, 999))
     message = f'''\
+        Secure Share System
+        
         Subject: Secret Code
 
         Your Code: {code}'''
@@ -666,7 +668,7 @@ def voice(c):
                     break
         except:
             return
-        time.sleep(0.5)
+        time.sleep(0.1)
 
 
 def voice_channel():

@@ -1,9 +1,9 @@
 from kivy import Config
 from kivy.uix.floatlayout import FloatLayout
-Config.set('graphics', 'width', '1280')
-Config.set('graphics', 'height', '720')
-Config.set('graphics', 'minimum_width', '1280')
-Config.set('graphics', 'minimum_height', '720')
+Config.set('graphics', 'width', '854')
+Config.set('graphics', 'height', '480')
+Config.set('graphics', 'minimum_width', '854')
+Config.set('graphics', 'minimum_height', '480')
 Config.set('graphics', 'maximum_height', '2160')
 Config.set('graphics', 'maximum_width', '3840')
 Config.set('graphics', 'maxfps', 240)
@@ -402,7 +402,7 @@ class MainWindow(Screen):
             return
     
     def send_voice(self): # a function to send voice recordings
-        time.sleep(0.1)
+        global stream_rec
         while True:
             try:
                 special.send(encrypt_file(stream_rec.read(1024), skey))
@@ -422,7 +422,7 @@ class MainWindow(Screen):
         self.fl.remove_widget(b)
 
     def voice_main(self): # main voice function
-        global target
+        global target, stream
         vkey = b'JlIw6uoJknefy2pI7nzTyb8fnzdewdtqpVrk7AYYxWE='
         try:
             special.connect((host, 61441))
@@ -434,11 +434,11 @@ class MainWindow(Screen):
             special.send(encrypt_message(str(len(query)), skey))
             special.send(query)
             an = special.recv(5)
+            if an != 'start'.encode():
+                return
             query = encrypt_message('▓<>' + target + '<>' + f'{user.nick} Joined The Voice Channel!', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
-            if an != 'start'.encode():
-                return
             time.sleep(0.1)
             self.fl.add_widget(Button(text='Leave Voice', pos_hint={"x":0.88, "y": 0.24}, size_hint=(0.1, 0.05), on_release=self.leave_voice))
             mv_t = threading.Thread(target=self.send_voice)
