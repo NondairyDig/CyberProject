@@ -562,6 +562,7 @@ def handle(client, addr, session_key):
                     temp.write(data)
                     temp.close()
                     temp = open('files\\temp' + split[1]+split[2], 'rb+')
+                    time.sleep(1)
                     while True:
                         data = temp.read(32768)
                         if data == b'':

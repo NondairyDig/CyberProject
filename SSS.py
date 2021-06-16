@@ -369,6 +369,7 @@ class MainWindow(Screen):
             query = encrypt_message(f'◙°±©—₧ƒ<>{b.text}<>{user.nick}', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
+            time.sleep(1)
             data = ''
             while True:
                 buff = decrypt_message(client.recv(100), skey)
@@ -386,7 +387,8 @@ class MainWindow(Screen):
             client.send(query)
             self.receive()
             return
-        except:
+        except Exception as e:
+            print(e)
             self.pop.content.text = 'An error occurd please try again or re enter the room'
             self.pop.open()
             time.sleep(2)
@@ -515,6 +517,7 @@ class MainWindow(Screen):
                 length = encrypt_message(str(len(query)), skey)
                 client.send(length)
                 client.send(query)
+                time.sleep(0.5)
                 while True:
                     data = file.read(32768)
                     if data == b'':
@@ -543,7 +546,8 @@ class MainWindow(Screen):
             else:
                 raise Exception()
 
-        except:
+        except Exception as e:
+            print(e)
             self.pop.content.text = 'Uploading file failed'
             self.pop.open()
             time.sleep(2)
