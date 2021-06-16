@@ -574,7 +574,8 @@ def handle(client, addr, session_key):
                         client.send(query)
                         time.sleep(0.001)
                     os.remove('files\\temp' + split[1]+split[2])
-                except:
+                except Exception as e:
+                    print(e)
                     pass
 
             elif split[0] == '▓quitf': # signal for quiting temporerly end transmission
