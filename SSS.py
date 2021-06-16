@@ -352,6 +352,7 @@ class MainWindow(Screen):
             query = encrypt_message(f'Ω¥•¼<>', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
+            time.sleep(0.001)
             query = encrypt_message('▓quitf', skey)
             client.send(encrypt_message(str(len(query)), skey))
             client.send(query)
@@ -362,10 +363,6 @@ class MainWindow(Screen):
 
     def getfile_main(self, b, d): # a function called to a thread to get/download a picked file to the server
         try:
-            try:
-                os.remove(str(d))
-            except:
-                pass
             file = open(str(d), 'ab')
             self.pop.content.text = "Getting file..."
             self.pop.open()
@@ -527,7 +524,7 @@ class MainWindow(Screen):
                     query = encrypt_file(data, skey)
                     client.send(encrypt_message(str(len(query)), skey))
                     client.send(query)
-                    time.sleep(0.0000000001)
+                    time.sleep(0.001)
                 buff = decrypt_message(client.recv(100), skey)
                 ans = decrypt_message(client.recv(int(buff)), skey)
                 if ans == 'uploaded successfully©◙ƒ<>':
@@ -574,8 +571,10 @@ class MainWindow(Screen):
                     self.pop.open()
                     file_thread = threading.Thread(target=self.send_file, args=(filename, target))
                     file_thread.start()
+                else:
+                    largeFile()
             else:
-                largeFile()
+                return
         except:
             error_t()
 

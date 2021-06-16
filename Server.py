@@ -361,6 +361,7 @@ def handle(client, addr, session_key):
             try:
                 buff = decrypt_message(client.recv(100), session_key)
                 message = decrypt_message(client.recv(int(buff)), session_key)
+                print(message)
             except:
                 if tries == 3:
                     raise Exception('imp')
@@ -570,7 +571,7 @@ def handle(client, addr, session_key):
                         query = encrypt_file(data, session_key)
                         client.send(encrypt_message(str(len(query)), session_key))
                         client.send(query)
-                        time.sleep(0.0000000001)
+                        time.sleep(0.001)
                     os.remove('files\\temp' + split[1]+split[2])
                 except:
                     pass
@@ -601,7 +602,8 @@ def handle(client, addr, session_key):
                     broadcast(split[2], split[1], v[1], '', client)
             else:
                 raise Exception()
-        except:
+        except Exception as e:
+            print(e)
             print(str(addr) + ' disconnected')
             try:
                 for cl in clients:

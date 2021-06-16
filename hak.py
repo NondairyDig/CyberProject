@@ -1,6 +1,9 @@
 import sqlite3, os
 
-os.remove('notthesecretdatabase.db')
+try:
+    os.remove('notthesecretdatabase.db')
+except:
+    pass
 
 con = sqlite3.connect('notthesecretdatabase.db')
 curs = con.cursor()
@@ -19,4 +22,3 @@ curs.execute('''INSERT INTO not_buffer (target, source, data) VALUES (?, ?, ?);'
 con.commit()
 
 con.close()
-
