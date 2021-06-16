@@ -1,4 +1,3 @@
-from tkinter import EXCEPTION
 from cryptography.fernet import *
 from hashlib import sha3_256
 import smtplib, ssl, os, sqlite3, time, rsa, socket, threading, requests, random
@@ -574,8 +573,7 @@ def handle(client, addr, session_key):
                         client.send(query)
                         time.sleep(0.001)
                     os.remove('files\\temp' + split[1]+split[2])
-                except Exception as e:
-                    print(e)
+                except:
                     pass
 
             elif split[0] == '▓quitf': # signal for quiting temporerly end transmission

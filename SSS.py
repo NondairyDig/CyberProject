@@ -1,5 +1,4 @@
 from kivy import Config
-from kivy.uix.floatlayout import FloatLayout
 Config.set('graphics', 'width', '854')
 Config.set('graphics', 'height', '480')
 Config.set('graphics', 'minimum_width', '854')
