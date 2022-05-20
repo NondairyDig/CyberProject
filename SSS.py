@@ -33,7 +33,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # global variable fo
 skey = b''  # global variable for session key
 user = '' #  global variable for user
 file_key = b'K4a6Y7CA8JZMNTTv8-XeSbX8BT3ywLmtz177ry11d0o='  # key to decrypt data file
-host = '192.168.1.254'  # server address
+host = '10.203.1.254'  # server address
 global special 
 special = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 p = pyaudio.PyAudio()

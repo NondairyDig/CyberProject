@@ -2,7 +2,7 @@ from cryptography.fernet import *
 from hashlib import sha3_256
 import smtplib, ssl, os, sqlite3, time, rsa, socket, threading, requests, random
 
-host = '192.168.1.254'
+host = '10.203.1.254'
 clients = []
 public = []
 con = sqlite3.connect('notthesecretdatabase.db', check_same_thread=False)
